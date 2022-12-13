@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "symbolite"
+authors = [
+    { name="Hernán E. Grecco", email="hernan.grecco@gmail.com" },
+    { name="Mauro Silberberg", email="maurosilber@gmail.com" },
+]
+description = "A minimalistic symbolic package."
+keywords = ["symbolic"]
+license = { file="LICENSE" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries",
+]
+requires-python = ">=3.8"
+dynamic = ["dependencies", "optional-dependencies", "version"]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[tool.setuptools.packages.find]
+where = ["symbolite"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = "requirements.txt"}
+optional-dependencies.test = {file = "requirements.test.txt"}
+
+[project.urls]
+"Homepage" = "https://github.com/hgrecco/symbolite"
+"Bug Tracker" = "https://github.com/hgrecco/symbolite/issues"
+
+[tool.setuptools_scm]
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib --doctest-modules"
+pythonpath = "."
+testpaths = [
+    "symbolite/testsuite"
+]
+
+
+[tool.isort]
+profile = "black"

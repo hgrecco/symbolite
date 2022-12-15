@@ -22,7 +22,7 @@ from .mappers import (
     Unsupported,
     default_to_name_mapper,
 )
-from .operands import LIBPREFIX, Call, Symbol, SymbolicExpression
+from .operands import NAMESPACE, Call, Symbol, SymbolicExpression
 
 _default_str_mapper = collections.ChainMap(AsStr, default_to_name_mapper)
 
@@ -78,7 +78,7 @@ def map_expression_by_attr(expr: SymbolicExpression, libsl: types.ModuleType):
         return f(*args, **kwargs)
 
     if isinstance(expr, Symbol):
-        if expr.prefix == LIBPREFIX:
+        if expr.namespace == NAMESPACE:
             return getattr(libsl, expr.name)
         if libsl.Symbol is Unsupported:
             raise Unsupported("Symbol is not supported by this implementation")

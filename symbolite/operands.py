@@ -17,7 +17,6 @@ import types
 import warnings
 
 NAMESPACE = "libsl"
-LIBPREFIX = NAMESPACE + "."
 
 
 @functools.lru_cache()
@@ -166,10 +165,12 @@ class Symbol(SymbolicExpression):
     """A user defined symbol."""
 
     name: str
-    prefix: str = ""
+    namespace: str = ""
 
     def __str__(self):
-        return self.prefix + self.name
+        if self.namespace:
+            return self.namespace + "." + self.name
+        return self.name
 
 
 @dataclasses.dataclass(frozen=True)
@@ -217,7 +218,7 @@ class Operator(Function):
     @classmethod
     def from_operator(cls, op, s):
         arity = s.count("{}")
-        return cls("op_" + op.__name__, LIBPREFIX, arity, s)
+        return cls("op_" + op.__name__, NAMESPACE, arity, s)
 
     def format(self, *args, **kwargs):
         if self.fmt and self.arity == len(args):

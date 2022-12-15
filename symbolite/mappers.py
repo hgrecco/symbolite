@@ -14,7 +14,7 @@ import collections
 import typing
 from typing import Union
 
-from .operands import LIBPREFIX, Function, Symbol
+from .operands import Function, Symbol
 
 #####################
 # Typing annotations
@@ -72,18 +72,9 @@ class ToNameMapper(ChainMap):
     A prefix can be added.
     """
 
-    prefix: str
-
-    def __init__(self, prefix: str = "", *args):
-        super().__init__(*args)
-        self.prefix = prefix
-
     def __getitem__(self, item) -> str:
         if isinstance(item, Symbol):
-            if item.prefix == LIBPREFIX:
-                return item.prefix + item.name
-            else:
-                return self.prefix + item.name
+            return str(item)
         raise KeyError(item)
 
 

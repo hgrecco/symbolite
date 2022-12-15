@@ -13,7 +13,7 @@ from __future__ import annotations
 import functools
 import operator
 
-from .operands import LIBPREFIX, Function, Operator, Symbol
+from .operands import NAMESPACE, Function, Operator, Symbol
 
 _functions = (
     "abs",
@@ -103,6 +103,6 @@ def __getattr__(name):
     if name in _operators:
         return _operators[name]
     elif name in _values:
-        return Symbol(name, LIBPREFIX)
+        return Symbol(name, NAMESPACE)
     else:
-        return Function(name, LIBPREFIX)
+        return Function(name, NAMESPACE)

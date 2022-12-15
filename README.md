@@ -75,7 +75,7 @@ Two other implementations are provided: NumPy and SymPy:
 ```python
 >>> from symbolite.libimpl import numpy as libsl
 >>> expr3.eval()
-2.6327476856711174
+2.6327476856711183
 >>> from symbolite.libimpl import sympy as libsl
 >>> expr3.eval()
 2.63274768567112

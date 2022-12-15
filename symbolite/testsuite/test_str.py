@@ -41,14 +41,3 @@ def test_unknown_symbols():
 def test_lib_symbols(expr, result):
     mapper = collections.ChainMap(AsStr, ToNameMapper())
     assert as_string(expr, mapper) == result
-
-
-@pytest.mark.parametrize(
-    "expr,result",
-    [
-        (x + lib.cos(y) * lib.pi, f"(m_x + ({NAMESPACE}.cos(m_y) * {NAMESPACE}.pi))"),
-    ],
-)
-def test_known_symbols_prefixed(expr, result):
-    mapper = collections.ChainMap(AsStr, ToNameMapper("m_"))
-    assert as_string(expr, mapper) == result

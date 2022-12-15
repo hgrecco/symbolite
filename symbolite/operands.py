@@ -154,7 +154,19 @@ class SymbolicExpression(OperandMixin):
                 libsl = math
         return _translators().evaluate(self, libsl)
 
-    def symbol_names(self, namespace=None, skip_operators=True) -> set[str, ...]:
+    def symbol_names(self, namespace="", skip_operators=True) -> set[str, ...]:
+        """Return a set of symbol names (with full namespace indication).
+
+        Parameters
+        ----------
+        namespace: str or None
+            If None, all symbols will be returned independently of the namespace.
+            If a string, will compare Symbol.namespace to that.
+            Defaults to "" which is the namespace for user defined symbols.
+        skip_operators: bool
+            If true (default), operators will not be returned.
+
+        """
         symbols = (s for s in _translators().inspect(self) if isinstance(s, Symbol))
         if namespace is not None:
             symbols = (s for s in symbols if s.namespace == namespace)

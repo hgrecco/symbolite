@@ -46,6 +46,7 @@ pythonpath = "."
 testpaths = [
     "symbolite/testsuite"
 ]
+doctest_optionflags = "NUMBER"
 
 
 [tool.isort]

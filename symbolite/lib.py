@@ -13,7 +13,10 @@ from __future__ import annotations
 import functools
 import operator
 
-from .operands import NAMESPACE, Function, Operator, Symbol
+from .operands import Function, Operator, Symbol
+
+NAMESPACE = "libsl"
+
 
 _functions = (
     "abs",
@@ -75,16 +78,16 @@ _functions = (
 _values = ("e", "inf", "pi", "nan", "tau")
 
 _operators = {
-    "op_modpow": Operator.from_operator(pow, "(({} ** {}) % {})"),
-    "op_add": Operator.from_operator(operator.add, "({} + {})"),
-    "op_sub": Operator.from_operator(operator.sub, "({} - {})"),
-    "op_mul": Operator.from_operator(operator.mul, "({} * {})"),
-    "op_truediv": Operator.from_operator(operator.truediv, "({} / {})"),
-    "op_floordiv": Operator.from_operator(operator.floordiv, "({} // {})"),
-    "op_pow": Operator.from_operator(operator.pow, "({} ** {})"),
-    "op_mod": Operator.from_operator(operator.mod, "({} % {})"),
-    "op_pos": Operator.from_operator(operator.pos, "(+{})"),
-    "op_neg": Operator.from_operator(operator.neg, "(-{})"),
+    "op_modpow": Operator.from_operator(pow, "(({} ** {}) % {})", NAMESPACE),
+    "op_add": Operator.from_operator(operator.add, "({} + {})", NAMESPACE),
+    "op_sub": Operator.from_operator(operator.sub, "({} - {})", NAMESPACE),
+    "op_mul": Operator.from_operator(operator.mul, "({} * {})", NAMESPACE),
+    "op_truediv": Operator.from_operator(operator.truediv, "({} / {})", NAMESPACE),
+    "op_floordiv": Operator.from_operator(operator.floordiv, "({} // {})", NAMESPACE),
+    "op_pow": Operator.from_operator(operator.pow, "({} ** {})", NAMESPACE),
+    "op_mod": Operator.from_operator(operator.mod, "({} % {})", NAMESPACE),
+    "op_pos": Operator.from_operator(operator.pos, "(+{})", NAMESPACE),
+    "op_neg": Operator.from_operator(operator.neg, "(-{})", NAMESPACE),
 }
 
 __all__ = sorted(_values + _functions + tuple(_operators.keys()))

@@ -16,8 +16,6 @@ import inspect
 import types
 import warnings
 
-NAMESPACE = "libsl"
-
 
 @functools.lru_cache()
 def _lib():
@@ -216,9 +214,9 @@ class Operator(Function):
     fmt: str = ""
 
     @classmethod
-    def from_operator(cls, op, s):
+    def from_operator(cls, op, s, namespace):
         arity = s.count("{}")
-        return cls("op_" + op.__name__, NAMESPACE, arity, s)
+        return cls("op_" + op.__name__, namespace, arity, s)
 
     def format(self, *args, **kwargs):
         if self.fmt and self.arity == len(args):

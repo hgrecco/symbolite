@@ -2,8 +2,10 @@ import inspect
 
 import pytest
 
-from symbolite import Symbol, as_function, lib
+from symbolite import Symbol, lib
+from symbolite.operands import SymbolicExpression
 from symbolite.testsuite.common import all_impl
+from symbolite.translators import as_function
 
 x, y, z = map(Symbol, "x y z".split())
 
@@ -42,3 +44,50 @@ def test_lib_symbols(expr, replaced, libsl):
     assert expr.replace_by_name(x=2, y=3) == replaced
     assert expr.replace_by_name(x=2, y=3).eval(libsl) == value
     assert tuple(inspect.signature(f).parameters.keys()) == ("x", "y")
+
+
+@pytest.mark.parametrize(
+    "expr,namespace,skip_operators,result",
+    [
+        (
+            x + lib.pi * lib.cos(y),
+            None,
+            True,
+            {"x", "y", f"{lib.NAMESPACE}.cos", f"{lib.NAMESPACE}.pi"},
+        ),
+        (
+            x + lib.pi * lib.cos(y),
+            None,
+            False,
+            {
+                "x",
+                "y",
+                f"{lib.NAMESPACE}.cos",
+                f"{lib.NAMESPACE}.pi",
+                f"{lib.NAMESPACE}.op_add",
+                f"{lib.NAMESPACE}.op_mul",
+            },
+        ),
+        (x + lib.pi * lib.cos(y), "", True, {"x", "y"}),
+        (x + lib.pi * lib.cos(y), "", False, {"x", "y"}),
+        (
+            x + lib.pi * lib.cos(y),
+            "libsl",
+            True,
+            {f"{lib.NAMESPACE}.cos", f"{lib.NAMESPACE}.pi"},
+        ),
+        (
+            x + lib.pi * lib.cos(y),
+            "libsl",
+            False,
+            {
+                f"{lib.NAMESPACE}.cos",
+                f"{lib.NAMESPACE}.pi",
+                f"{lib.NAMESPACE}.op_add",
+                f"{lib.NAMESPACE}.op_mul",
+            },
+        ),
+    ],
+)
+def test_list_symbols(expr: SymbolicExpression, namespace, skip_operators, result):
+    assert expr.symbol_names(namespace, skip_operators) == result

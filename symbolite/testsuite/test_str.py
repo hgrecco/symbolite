@@ -2,12 +2,11 @@ import collections
 
 import pytest
 
-from symbolite import Scalar
 from symbolite.abstract import scalar
 from symbolite.mappers import AsStr, ToNameMapper
 from symbolite.translators import as_string
 
-x, y, z = map(Scalar, "x y z".split())
+x, y, z = map(scalar.Scalar, "x y z".split())
 
 
 @pytest.mark.parametrize(

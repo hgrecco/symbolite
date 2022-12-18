@@ -1,10 +1,9 @@
 import pytest
 
-from symbolite import Scalar
 from symbolite.abstract import scalar
 from symbolite.translators import replace, replace_by_name
 
-x, y, z = map(Scalar, "x y z".split())
+x, y, z = map(scalar.Scalar, "x y z".split())
 
 
 @pytest.mark.parametrize(
@@ -15,8 +14,8 @@ x, y, z = map(Scalar, "x y z".split())
     ],
 )
 def test_replace(expr, result):
-    assert replace(expr, {Scalar("y"): Scalar("z")}) == result
-    assert expr.replace({Scalar("y"): Scalar("z")}) == result
+    assert replace(expr, {scalar.Scalar("y"): scalar.Scalar("z")}) == result
+    assert expr.replace({scalar.Scalar("y"): scalar.Scalar("z")}) == result
 
 
 @pytest.mark.parametrize(
@@ -27,5 +26,5 @@ def test_replace(expr, result):
     ],
 )
 def test_replace_by_name(expr, result):
-    assert replace_by_name(expr, y=Scalar("z")) == result
-    assert expr.replace_by_name(y=Scalar("z")) == result
+    assert replace_by_name(expr, y=scalar.Scalar("z")) == result
+    assert expr.replace_by_name(y=scalar.Scalar("z")) == result

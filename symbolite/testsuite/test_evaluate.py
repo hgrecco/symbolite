@@ -2,12 +2,11 @@ import math as pymath
 
 import pytest
 
-from symbolite import Scalar
 from symbolite.abstract import scalar
 from symbolite.testsuite.common import all_impl
 from symbolite.translators import evaluate
 
-x, y, z = map(Scalar, "x y z".split())
+x, y, z = map(scalar.Scalar, "x y z".split())
 
 
 @pytest.mark.parametrize(

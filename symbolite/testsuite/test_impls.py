@@ -2,8 +2,8 @@ import math as pymath
 
 import pytest
 
-from symbolite import Unsupported
 from symbolite.abstract import scalar
+from symbolite.mappers import Unsupported
 from symbolite.testsuite.common import all_impl
 
 # Available functions and their test values

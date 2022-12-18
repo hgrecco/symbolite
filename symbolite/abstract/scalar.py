@@ -19,59 +19,59 @@ from symbolite.operands import Function, Named, Operator, SymbolicExpression
 NAMESPACE = "libscalar"
 
 
-_functions = (
-    "abs",
-    "acos",
-    "acosh",
-    "asin",
-    "asinh",
-    "atan",
-    "atan2",
-    "atanh",
-    "ceil",
-    "comb",
-    "copysign",
-    "cos",
-    "cosh",
-    "degrees",
-    "erf",
-    "erfc",
-    "exp",
-    "expm1",
-    "fabs",
-    "factorial",
-    "floor",
-    "fmod",
-    "frexp",
-    "gamma",
-    "gcd",
-    "hypot",
-    "isclose",
-    "isfinite",
-    "isinf",
-    "isnan",
-    "isqrt",
-    "lcm",
-    "ldexp",
-    "lgamma",
-    "log",
-    "log10",
-    "log1p",
-    "log2",
-    "modf",
-    "nextafter",
-    "perm",
-    "pow",
-    "radians",
-    "remainder",
-    "sin",
-    "sinh",
-    "sqrt",
-    "tan",
-    "tanh",
-    "trunc",
-    "ulp",
-)
+_functions = {
+    "abs": 1,
+    "acos": 1,
+    "acosh": 1,
+    "asin": 1,
+    "asinh": 1,
+    "atan": 1,
+    "atan2": 2,
+    "atanh": 1,
+    "ceil": 1,
+    "comb": 2,
+    "copysign": 2,
+    "cos": 1,
+    "cosh": 1,
+    "degrees": 1,
+    "erf": 1,
+    "erfc": 1,
+    "exp": 1,
+    "expm1": 1,
+    "fabs": 1,
+    "factorial": 1,
+    "floor": 1,
+    "fmod": 2,
+    "frexp": 1,
+    "gamma": 1,
+    "gcd": None,  # 1 to ---
+    "hypot": None,  # 1 to ---
+    "isclose": None,  # 2, 3, 4
+    "isfinite": 1,
+    "isinf": 1,
+    "isnan": 1,
+    "isqrt": 1,
+    "lcm": None,  # 1 to ---
+    "ldexp": 2,
+    "lgamma": 1,
+    "log": None,  # 1 or 2
+    "log10": 1,
+    "log1p": 1,
+    "log2": 1,
+    "modf": 1,
+    "nextafter": 2,
+    "perm": None,  # 1 or 2
+    "pow": 2,
+    "radians": 1,
+    "remainder": 2,
+    "sin": 1,
+    "sinh": 1,
+    "sqrt": 1,
+    "tan": 1,
+    "tanh": 1,
+    "trunc": 1,
+    "ulp": 1,
+}
 
 _values = ("e", "inf", "pi", "nan", "tau")
 
@@ -94,7 +94,9 @@ class Scalar(Named, SymbolicExpression):
     """A user defined symbol."""
 
 
-__all__ = sorted(_values + _functions + tuple(_operators.keys()) + ("Scalar",))
+__all__ = sorted(
+    _values + tuple(_functions.keys()) + tuple(_operators.keys()) + ("Scalar",)
+)
 
 
 def __dir__():
@@ -109,7 +111,7 @@ def __getattr__(name):
 
     if name in _operators:
         return _operators[name]
-    elif name in _values:
-        return Scalar(name, NAMESPACE)
+    elif name in _functions:
+        return Function(name, NAMESPACE, arity=_functions[name])
     else:
-        return Function(name, NAMESPACE)
+        return Scalar(name, NAMESPACE)

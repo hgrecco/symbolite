@@ -10,5 +10,5 @@
 
 from __future__ import annotations
 
+from .abstract.scalar import Scalar
 from .mappers import Unsupported
-from .operands import Symbol

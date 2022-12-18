@@ -2,11 +2,12 @@ import collections
 
 import pytest
 
-from symbolite import Symbol, lib
+from symbolite import Scalar
+from symbolite.abstract import scalar
 from symbolite.mappers import AsStr, ToNameMapper
 from symbolite.translators import as_string
 
-x, y, z = map(Symbol, "x y z".split())
+x, y, z = map(Scalar, "x y z".split())
 
 
 @pytest.mark.parametrize(
@@ -34,8 +35,8 @@ def test_unknown_symbols():
 @pytest.mark.parametrize(
     "expr,result",
     [
-        (x + lib.cos(y), f"(x + {lib.NAMESPACE}.cos(y))"),
-        (x + lib.pi, f"(x + {lib.NAMESPACE}.pi)"),
+        (x + scalar.cos(y), f"(x + {scalar.NAMESPACE}.cos(y))"),
+        (x + scalar.pi, f"(x + {scalar.NAMESPACE}.pi)"),
     ],
 )
 def test_lib_symbols(expr, result):

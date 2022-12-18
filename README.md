@@ -7,9 +7,9 @@ expressions. Just create a symbol (or more) and operate with them as you
 will normally do in Python.
 
 ```python
->>> from symbolite import Symbol
->>> x = Symbol("x")
->>> y = Symbol("y")
+>>> from symbolite import Scalar
+>>> x = Scalar("x")
+>>> y = Scalar("y")
 >>> expr1 = x + 3 * y
 >>> print(expr1)
 (x + (3 * y))
@@ -37,16 +37,8 @@ name usually as `libsl`. The default one just uses python's math module.
 You can avoid this warning by explicitely providing an `libsl` implementation.
 
 ```python
->>> from symbolite.libimpl import math as _math
->>> expr2.eval(_math)
-11
-```
-
-or importing it as `libsl` and let symbolite
-
-```python
->>> from symbolite.libimpl import math as libsl
->>> expr2.eval()
+>>> from symbolite.impl.scalar import default
+>>> expr2.eval(libscalar=default)
 11
 ```
 
@@ -56,10 +48,10 @@ but let's not get too much ahead of ourselves.
 Mathematical functions are available in the `lib` module.
 
 ```python
->>> from symbolite import lib
->>> expr3 = 3. * lib.cos(0.5)
+>>> from symbolite.abstract import scalar
+>>> expr3 = 3. * scalar.cos(0.5)
 >>> print(expr3)
-(3.0 * libsl.cos(0.5))
+(3.0 * libscalar.cos(0.5))
 ```
 
 (Functions are named according to the python math module).
@@ -73,11 +65,11 @@ Again, this is a symbolic expression until evaluated.
 Two other implementations are provided: NumPy and SymPy:
 
 ```python
->>> from symbolite.libimpl import numpy as libsl
->>> expr3.eval()
+>>> from symbolite.impl.scalar import numpy as libscalar
+>>> expr3.eval(libscalar=libscalar)
 2.6327476856711
->>> from symbolite.libimpl import sympy as libsl
->>> expr3.eval()
+>>> from symbolite.impl.scalar import sympy as libscalar
+>>> expr3.eval(libscalar=libscalar)
 2.6327476856711
 ```
 
@@ -86,10 +78,11 @@ display may vary)
 
 In general, all symbols must be replaced by values in order
 to evaluate an expression. However, when using an implementation
-like SymPy that contains a Symbol object you can still evaluate.
+like SymPy that contains a Scalar object you can still evaluate.
 
 ```python
->>> (3. * lib.cos(x).eval())
+>>> from symbolite.impl.scalar import sympy as libscalar
+>>> (3. * scalar.cos(x).eval(libscalar=libscalar))
 3.0*cos(x)
 ```
 

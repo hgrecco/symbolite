@@ -2,12 +2,13 @@ import inspect
 
 import pytest
 
-from symbolite import Symbol, lib
+from symbolite import Scalar
+from symbolite.abstract import scalar
 from symbolite.operands import SymbolicExpression
 from symbolite.testsuite.common import all_impl
 from symbolite.translators import as_function
 
-x, y, z = map(Symbol, "x y z".split())
+x, y, z = map(Scalar, "x y z".split())
 
 
 @pytest.mark.parametrize(
@@ -21,28 +22,28 @@ x, y, z = map(Symbol, "x y z".split())
         x // y,
     ],
 )
-@pytest.mark.parametrize("libsl", all_impl.values(), ids=all_impl.keys())
-def test_known_symbols(expr, libsl):
-    f = as_function(expr, "my_function", ("x", "y"), libsl)
+@pytest.mark.parametrize("libscalar", all_impl.values(), ids=all_impl.keys())
+def test_known_symbols(expr, libscalar):
+    f = as_function(expr, "my_function", ("x", "y"), libscalar=libscalar)
     assert f.__name__ == "my_function"
-    assert expr.replace_by_name(x=2, y=3).eval(libsl) == f(2, 3)
+    assert expr.replace_by_name(x=2, y=3).eval(libscalar=libscalar) == f(2, 3)
     assert tuple(inspect.signature(f).parameters.keys()) == ("x", "y")
 
 
 @pytest.mark.parametrize(
     "expr,replaced",
     [
-        (x + lib.cos(y), 2 + lib.cos(3)),
-        (x + lib.pi * y, 2 + lib.pi * 3),
+        (x + scalar.cos(y), 2 + scalar.cos(3)),
+        (x + scalar.pi * y, 2 + scalar.pi * 3),
     ],
 )
-@pytest.mark.parametrize("libsl", all_impl.values(), ids=all_impl.keys())
-def test_lib_symbols(expr, replaced, libsl):
-    f = as_function(expr, "my_function", ("x", "y"), libsl)
+@pytest.mark.parametrize("libscalar", all_impl.values(), ids=all_impl.keys())
+def test_lib_symbols(expr, replaced, libscalar):
+    f = as_function(expr, "my_function", ("x", "y"), libscalar=libscalar)
     value = f(2, 3)
     assert f.__name__ == "my_function"
     assert expr.replace_by_name(x=2, y=3) == replaced
-    assert expr.replace_by_name(x=2, y=3).eval(libsl) == value
+    assert expr.replace_by_name(x=2, y=3).eval(libscalar=libscalar) == value
     assert tuple(inspect.signature(f).parameters.keys()) == ("x", "y")
 
 
@@ -50,41 +51,41 @@ def test_lib_symbols(expr, replaced, libsl):
     "expr,namespace,skip_operators,result",
     [
         (
-            x + lib.pi * lib.cos(y),
+            x + scalar.pi * scalar.cos(y),
             None,
             True,
-            {"x", "y", f"{lib.NAMESPACE}.cos", f"{lib.NAMESPACE}.pi"},
+            {"x", "y", f"{scalar.NAMESPACE}.cos", f"{scalar.NAMESPACE}.pi"},
         ),
         (
-            x + lib.pi * lib.cos(y),
+            x + scalar.pi * scalar.cos(y),
             None,
             False,
             {
                 "x",
                 "y",
-                f"{lib.NAMESPACE}.cos",
-                f"{lib.NAMESPACE}.pi",
-                f"{lib.NAMESPACE}.op_add",
-                f"{lib.NAMESPACE}.op_mul",
+                f"{scalar.NAMESPACE}.cos",
+                f"{scalar.NAMESPACE}.pi",
+                f"{scalar.NAMESPACE}.op_add",
+                f"{scalar.NAMESPACE}.op_mul",
             },
         ),
-        (x + lib.pi * lib.cos(y), "", True, {"x", "y"}),
-        (x + lib.pi * lib.cos(y), "", False, {"x", "y"}),
+        (x + scalar.pi * scalar.cos(y), "", True, {"x", "y"}),
+        (x + scalar.pi * scalar.cos(y), "", False, {"x", "y"}),
         (
-            x + lib.pi * lib.cos(y),
-            "libsl",
+            x + scalar.pi * scalar.cos(y),
+            "libscalar",
             True,
-            {f"{lib.NAMESPACE}.cos", f"{lib.NAMESPACE}.pi"},
+            {f"{scalar.NAMESPACE}.cos", f"{scalar.NAMESPACE}.pi"},
         ),
         (
-            x + lib.pi * lib.cos(y),
-            "libsl",
+            x + scalar.pi * scalar.cos(y),
+            "libscalar",
             False,
             {
-                f"{lib.NAMESPACE}.cos",
-                f"{lib.NAMESPACE}.pi",
-                f"{lib.NAMESPACE}.op_add",
-                f"{lib.NAMESPACE}.op_mul",
+                f"{scalar.NAMESPACE}.cos",
+                f"{scalar.NAMESPACE}.pi",
+                f"{scalar.NAMESPACE}.op_add",
+                f"{scalar.NAMESPACE}.op_mul",
             },
         ),
     ],

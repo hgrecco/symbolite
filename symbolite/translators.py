@@ -11,10 +11,13 @@
 from __future__ import annotations
 
 import collections
+import importlib
+import inspect as pyinspect
+import pkgutil
 import types
 import typing as ty
 
-from . import lib
+from . import abstract, mappers
 from .mappers import (
     AsStr,
     CaptureCount,
@@ -23,12 +26,44 @@ from .mappers import (
     Unsupported,
     default_to_name_mapper,
 )
-from .operands import Call, Symbol, SymbolicExpression
+from .operands import Call, Named, SymbolicExpression
+
+
+def _modname_to_lib(module_name: str):
+    return f"lib{module_name.split('.')[-1]}"
+
+
+DEFAULT_IMPLS = {
+    _modname_to_lib(m.name): importlib.import_module(
+        f"symbolite.impl.{m.name.split('.')[-1]}.default"
+    )
+    for m in pkgutil.iter_modules(abstract.__path__, abstract.__name__ + ".")
+}
+
+
+def find_libs_in_stack(expr: SymbolicExpression = None):
+    if expr is None:
+        missing_libs = set(DEFAULT_IMPLS.keys())
+    else:
+        missing_libs = set(n for n in expr.symbol_names(None) if n.startswith("lib"))
+    out = {}
+    frame = pyinspect.currentframe().f_back
+    while frame:
+        for key in set(
+            missing_libs
+        ):  # we create a copy to be able to modify the original.
+            if key in frame.f_locals:
+                out[key] = frame.f_locals[key]
+                missing_libs.remove(key)
+        frame = frame.f_back
+
+    return out
+
 
 _default_str_mapper = collections.ChainMap(AsStr, default_to_name_mapper)
 
 
-def map_expression(expr: SymbolicExpression, mapper: GetItem[Symbol, ty.Any]):
+def map_expression(expr: SymbolicExpression, mapper: GetItem[Named, ty.Any]):
     """Map each a symbol recursively.
 
     Parameters
@@ -50,40 +85,50 @@ def map_expression(expr: SymbolicExpression, mapper: GetItem[Symbol, ty.Any]):
 
         return f(*args, **kwargs)
 
-    if isinstance(expr, Symbol):
+    if isinstance(expr, Named):
         return mapper[expr]
 
     return expr
 
 
-def map_expression_by_attr(expr: SymbolicExpression, libsl: types.ModuleType):
+def map_expression_by_attr(expr: SymbolicExpression, **libs: types.ModuleType):
     """Map each a symbol recursively.
 
     Parameters
     ----------
     expr
         symbolic expression.
-    libsl
+    libs
         mapping from symbols to other objects, using getattr.
     """
 
     if isinstance(expr, Call):
-        args = tuple(map_expression_by_attr(arg, libsl) for arg in expr.args)
-        kwargs = {k: map_expression_by_attr(arg, libsl) for k, arg in expr.kwargs_items}
+        args = tuple(map_expression_by_attr(arg, **libs) for arg in expr.args)
+        kwargs = {
+            k: map_expression_by_attr(arg, **libs) for k, arg in expr.kwargs_items
+        }
 
-        f = getattr(libsl, expr.func.name)
+        f = getattr(libs[expr.func.namespace], expr.func.name)
 
         if f is Unsupported:
             raise Unsupported(f"{expr.func} is not supported by this implementation")
 
         return f(*args, **kwargs)
 
-    if isinstance(expr, Symbol):
-        if expr.namespace == lib.NAMESPACE:
-            return getattr(libsl, expr.name)
-        if libsl.Symbol is Unsupported:
-            raise Unsupported("Symbol is not supported by this implementation")
-        return libsl.Symbol(str(expr))
+    if isinstance(expr, Named):
+
+        if expr.namespace != "":  # not user defined symbol
+            return getattr(libs[expr.namespace], expr.name)
+
+        cls = getattr(
+            libs[_modname_to_lib(expr.__class__.__module__)], expr.__class__.__name__
+        )
+        if cls is Unsupported:
+            raise Unsupported(
+                f"{expr.__class__.__name__} is not supported by this implementation"
+            )
+
+        return cls(expr.name)
 
     return expr
 
@@ -141,13 +186,13 @@ def replace_by_name(expr: SymbolicExpression, **symbols):
         keyword arguments connecting names to values.
     """
 
-    mapper = {Symbol(k): v for k, v in symbols.items()}
+    mapper = mappers.MatchByName(symbols)
     return map_expression(expr, collections.ChainMap(mapper, IdentityMapper))
 
 
 def evaluate(
     expr: SymbolicExpression,
-    libsl: types.ModuleType,
+    **libs: types.ModuleType,
 ):
     """Evaluate expression.
 
@@ -155,11 +200,13 @@ def evaluate(
     ----------
     expr
         symbolic expression.
-    libsl
+    libs
         implementation module
     """
 
-    return map_expression_by_attr(expr, libsl)
+    libs = {**DEFAULT_IMPLS, **libs}
+
+    return map_expression_by_attr(expr, **libs)
 
 
 def as_string(
@@ -183,7 +230,7 @@ def as_function(
     expr: SymbolicExpression,
     function_name: str,
     params: tuple[str, ...],
-    libsl: types.ModuleType,
+    **libs: types.ModuleType,
 ):
     """Converts the expression to a callable function.
 
@@ -195,7 +242,7 @@ def as_function(
         name of the function to be used.
     params
         names of the parameters.s
-    libsl:
+    libs:
         implementation module
     """
 
@@ -203,6 +250,8 @@ def as_function(
         f"""def {function_name}({", ".join(params)}): return {as_string(expr)}"""
     )
 
+    libs = {**DEFAULT_IMPLS, **libs}
+
     lm = {}
-    exec(function_def, dict(libsl=libsl), lm)
+    exec(function_def, libs, lm)
     return lm[function_name]

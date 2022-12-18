@@ -88,6 +88,6 @@ op_mod = operator.mod
 op_pos = operator.pos
 op_neg = operator.neg
 
-Symbol = sy.Symbol
+Scalar = sy.Symbol
 
 del sy, operator, Unsupported, x, y

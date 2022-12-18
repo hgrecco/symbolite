@@ -10,12 +10,13 @@
 
 from __future__ import annotations
 
+import dataclasses
 import functools
 import operator
 
-from .operands import Function, Operator, Symbol
+from symbolite.operands import Function, Named, Operator, SymbolicExpression
 
-NAMESPACE = "libsl"
+NAMESPACE = "libscalar"
 
 
 _functions = (
@@ -90,7 +91,13 @@ _operators = {
     "op_neg": Operator.from_operator(operator.neg, "(-{})", NAMESPACE),
 }
 
-__all__ = sorted(_values + _functions + tuple(_operators.keys()))
+
+@dataclasses.dataclass(frozen=True)
+class Scalar(Named, SymbolicExpression):
+    """A user defined symbol."""
+
+
+__all__ = sorted(_values + _functions + tuple(_operators.keys()) + ("Scalar",))
 
 
 def __dir__():
@@ -106,6 +113,6 @@ def __getattr__(name):
     if name in _operators:
         return _operators[name]
     elif name in _values:
-        return Symbol(name, NAMESPACE)
+        return Scalar(name, NAMESPACE)
     else:
         return Function(name, NAMESPACE)

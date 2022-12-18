@@ -2,7 +2,8 @@ import math as pymath
 
 import pytest
 
-from symbolite import Unsupported, lib
+from symbolite import Unsupported
+from symbolite.abstract import scalar
 from symbolite.testsuite.common import all_impl
 
 # Available functions and their test values
@@ -92,7 +93,7 @@ def almost_equal(x, y, threshold=0.0001):
 @pytest.mark.parametrize("libsl", all_impl.values(), ids=all_impl.keys())
 def test_is_defined(libsl):
     """Test that that all included mappers define members defined in symbolite.lib"""
-    for k in dir(lib):
+    for k in dir(scalar):
         assert hasattr(libsl, k)
 
 

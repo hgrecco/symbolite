@@ -14,7 +14,7 @@ import collections
 import typing
 from typing import Union
 
-from .operands import Function, Symbol
+from .operands import Function, Named
 
 #####################
 # Typing annotations
@@ -51,30 +51,40 @@ class ChainMap(collections.ChainMap):
         return ChainMap(other, self)
 
 
-class FromSymbol(ChainMap):
+class FromNamed(ChainMap):
     """Maps a symbolite symbol to"""
 
-    transformation: typing.Callable[[Symbol], typing.Any]
+    transformation: typing.Callable[[Named], typing.Any]
 
     def __init__(self, transformation, *args):
         super().__init__(*args)
         self.transformation = transformation
 
     def __getitem__(self, item):
-        if isinstance(item, Symbol):
+        if isinstance(item, Named):
             return self.transformation(item)
         raise KeyError(item)
 
 
 class ToNameMapper(ChainMap):
-    """Maps a Function, Value or Symbol to its name.
+    """Maps a Function, Value or Scalar to its name.
 
     A prefix can be added.
     """
 
     def __getitem__(self, item) -> str:
-        if isinstance(item, Symbol):
+        if isinstance(item, Named):
             return str(item)
+        raise KeyError(item)
+
+
+class MatchByName:
+    def __init__(self, mapping: dict[str, typing.Any]):
+        self.mapping = mapping
+
+    def __getitem__(self, item) -> str:
+        if isinstance(item, Named):
+            return self.mapping[str(item)]
         raise KeyError(item)
 
 

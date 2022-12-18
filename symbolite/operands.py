@@ -12,17 +12,15 @@ from __future__ import annotations
 
 import dataclasses
 import functools
-import inspect
 import types
-import warnings
 
 
 @functools.lru_cache()
 def _lib():
     # Is there a better way to deal with circular imports.
-    from . import lib
+    from .abstract import scalar
 
-    return lib
+    return scalar
 
 
 @functools.lru_cache()
@@ -126,7 +124,7 @@ class SymbolicExpression(OperandMixin):
         """
         return _translators().replace_by_name(self, **symbols)
 
-    def eval(self, libsl: types.ModuleType = None):
+    def eval(self, **libs: types.ModuleType):
         """Evaluate expression.
 
         If no implementation library is provided:
@@ -137,22 +135,11 @@ class SymbolicExpression(OperandMixin):
 
         Parameters
         ----------
-        libsl
-            implementation module
+        libs
+            implementations
         """
-        if libsl is None:
-            frame = inspect.currentframe().f_back
-            while frame:
-                if "libsl" in frame.f_locals:
-                    libsl = frame.f_locals["libsl"]
-                    break
-                frame = frame.f_back
-            else:
-                from .libimpl import math
 
-                warnings.warn("No libsl provided, defaulting to 'math'.")
-                libsl = math
-        return _translators().evaluate(self, libsl)
+        return _translators().evaluate(self, **libs)
 
     def symbol_names(self, namespace="", skip_operators=True) -> set[str, ...]:
         """Return a set of symbol names (with full namespace indication).
@@ -161,13 +148,13 @@ class SymbolicExpression(OperandMixin):
         ----------
         namespace: str or None
             If None, all symbols will be returned independently of the namespace.
-            If a string, will compare Symbol.namespace to that.
+            If a string, will compare Scalar.namespace to that.
             Defaults to "" which is the namespace for user defined symbols.
         skip_operators: bool
             If true (default), operators will not be returned.
 
         """
-        symbols = (s for s in _translators().inspect(self) if isinstance(s, Symbol))
+        symbols = (s for s in _translators().inspect(self) if isinstance(s, Named))
         if namespace is not None:
             symbols = (s for s in symbols if s.namespace == namespace)
         if skip_operators:
@@ -180,7 +167,7 @@ class SymbolicExpression(OperandMixin):
 
 
 @dataclasses.dataclass(frozen=True)
-class Symbol(SymbolicExpression):
+class Named:
     """A user defined symbol."""
 
     name: str
@@ -193,7 +180,7 @@ class Symbol(SymbolicExpression):
 
 
 @dataclasses.dataclass(frozen=True)
-class Function(Symbol):
+class Function(Named):
     """A callable symbol."""
 
     arity: int = None

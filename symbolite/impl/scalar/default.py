@@ -89,6 +89,6 @@ op_mod = operator.mod
 op_pos = operator.pos
 op_neg = operator.neg
 
-Symbol = Unsupported
+Scalar = Unsupported
 
 del math, operator, Unsupported

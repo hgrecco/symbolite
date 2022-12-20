@@ -1,12 +1,12 @@
 """
-    symbolite.libimpl.numpy
-    ~~~~~~~~~~~~~~~~~~~~~~~
+    symbolite.impl.scalar.numpy
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Translate symbolite.lib into values and functions
     defined in NumPy.
 
-     =copyright = 2022 by Symbolite Authors, see AUTHORS for more details.
-     =license = BSD, see LICENSE for more details.
+    :copyright: 2022 by Symbolite Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
 """
 
 import operator

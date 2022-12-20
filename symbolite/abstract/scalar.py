@@ -1,8 +1,8 @@
 """
-    symbolite.lib
-    ~~~~~~~~~~~~~
+    symbolite.abstract.scalar
+    ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Function and values known by symbolite.
+    Function and values for scalar operations.
 
     :copyright: 2022 by Symbolite Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.

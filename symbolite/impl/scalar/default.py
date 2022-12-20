@@ -1,12 +1,12 @@
 """
-    symbolite.libimpl.math
-    ~~~~~~~~~~~~~~~~~~~~~~
+    symbolite.impl.scalar.default
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Translate symbolite.lib into values and functions
     defined in Python's math module.
 
-     =copyright = 2022 by Symbolite Authors, see AUTHORS for more details.
-     =license = BSD, see LICENSE for more details.
+    :copyright: 2022 by Symbolite Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
 """
 
 import math

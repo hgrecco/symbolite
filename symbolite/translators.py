@@ -41,7 +41,18 @@ DEFAULT_IMPLS = {
 }
 
 
-def find_libs_in_stack(expr: SymbolicExpression = None):
+def find_libs_in_stack(expr: SymbolicExpression = None) -> dict[str, types.ModuleType]:
+    """Find libraries in stack.
+
+    Parameters
+    ----------
+    expr
+        If None, an implementation for every abstract library
+        will be look for.
+        If an expression, it will be first inspected to find
+        which libraries it is using and only those will be look for.
+
+    """
     if expr is None:
         missing_libs = set(DEFAULT_IMPLS.keys())
     else:
@@ -171,9 +182,6 @@ def replace(expr: SymbolicExpression, *mapers):
 
 def replace_by_name(expr: SymbolicExpression, **symbols):
     """Replace Symbols by values or objects, matching by name.
-
-    If multiple mappers are provided,
-        they will be used in order (using a ChainMap)
 
     If a given object is not found in the mappers,
         the same object will be returned.

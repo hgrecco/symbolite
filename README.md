@@ -7,9 +7,9 @@ expressions. Just create a symbol (or more) and operate with them as you
 will normally do in Python.
 
 ```python
->>> from symbolite import Scalar
->>> x = Scalar("x")
->>> y = Scalar("y")
+>>> from symbolite.abstract import scalar
+>>> x = scalar.Scalar("x")
+>>> y = scalar.Scalar("y")
 >>> expr1 = x + 3 * y
 >>> print(expr1)
 (x + (3 * y))

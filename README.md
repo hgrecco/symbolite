@@ -2,7 +2,7 @@
 
 ______________________________________________________________________
 
-Symbolite allows you tu create symbolic mathematical
+Symbolite allows you to create symbolic mathematical
 expressions. Just create a symbol (or more) and operate with them as you
 will normally do in Python.
 

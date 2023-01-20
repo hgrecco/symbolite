@@ -4,7 +4,7 @@
 
     Translate symbolic expressions to values and strings.
 
-    :copyright: 2022 by Symbolite Authors, see AUTHORS for more details.
+    :copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
@@ -26,22 +26,61 @@ from .mappers import (
     Unsupported,
     default_to_name_mapper,
 )
-from .operands import Call, Named, SymbolicExpression
+from .operands import Call, Named, OperandMixin
 
 
 def _modname_to_lib(module_name: str):
     return f"lib{module_name.split('.')[-1]}"
 
 
-DEFAULT_IMPLS = {
-    _modname_to_lib(m.name): importlib.import_module(
-        f"symbolite.impl.{m.name.split('.')[-1]}.default"
-    )
-    for m in pkgutil.iter_modules(abstract.__path__, abstract.__name__ + ".")
-}
+def get_lib_implementation(
+    libname: str, filter_by_name: str | tuple[str, ...] | None = None
+) -> dict[str, types.ModuleType]:
+    """Get all implementations for a given lib
+
+    Parameters
+    ----------
+    libname
+        library name
+    filter_by_name
+        implementations that must be imported.
+    """
+    this_impl = importlib.import_module(f"symbolite.impl.{libname}")
+    out = {}
+    if isinstance(filter_by_name, str):
+        filter_by_name = (filter_by_name,)
+
+    for n in pkgutil.iter_modules(this_impl.__path__):
+        if filter_by_name and n.name not in filter_by_name:
+            continue
+        out[n.name] = importlib.import_module(f"symbolite.impl.{libname}.{n.name}")
+    return out
 
 
-def find_libs_in_stack(expr: SymbolicExpression = None) -> dict[str, types.ModuleType]:
+def get_implementations(
+    filter_by_name: str | tuple[str, ...] | None = None
+) -> dict[str, dict[str, types.ModuleType]]:
+    """Get all implementations for every lib.
+
+    Parameters
+    ----------
+    filter_by_name
+        implementations that must be imported.
+
+    """
+    out = {}
+    for m in pkgutil.iter_modules(abstract.__path__, abstract.__name__ + "."):
+        out[_modname_to_lib(m.name)] = get_lib_implementation(
+            m.name.split(".")[-1], filter_by_name
+        )
+
+    return out
+
+
+DEFAULT_IMPLS = {k: v["default"] for k, v in get_implementations("default").items()}
+
+
+def find_libs_in_stack(expr: OperandMixin = None) -> dict[str, types.ModuleType]:
     """Find libraries in stack.
 
     Parameters
@@ -56,10 +95,10 @@ def find_libs_in_stack(expr: SymbolicExpression = None) -> dict[str, types.Modul
     if expr is None:
         missing_libs = set(DEFAULT_IMPLS.keys())
     else:
-        missing_libs = set(n for n in expr.symbol_names(None) if n.startswith("lib"))
+        missing_libs = expr.symbol_namespaces() - set("")
     out = {}
     frame = pyinspect.currentframe().f_back
-    while frame:
+    while frame and missing_libs:
         for key in set(
             missing_libs
         ):  # we create a copy to be able to modify the original.
@@ -74,7 +113,7 @@ def find_libs_in_stack(expr: SymbolicExpression = None) -> dict[str, types.Modul
 _default_str_mapper = collections.ChainMap(AsStr, default_to_name_mapper)
 
 
-def map_expression(expr: SymbolicExpression, mapper: GetItem[Named, ty.Any]):
+def map_expression(expr: OperandMixin, mapper: GetItem[Named, ty.Any]):
     """Map each a symbol recursively.
 
     Parameters
@@ -102,7 +141,7 @@ def map_expression(expr: SymbolicExpression, mapper: GetItem[Named, ty.Any]):
     return expr
 
 
-def map_expression_by_attr(expr: SymbolicExpression, **libs: types.ModuleType):
+def map_expression_by_attr(expr: OperandMixin, **libs: types.ModuleType):
     """Map each a symbol recursively.
 
     Parameters
@@ -114,11 +153,13 @@ def map_expression_by_attr(expr: SymbolicExpression, **libs: types.ModuleType):
     """
 
     if isinstance(expr, Call):
+        # first get dispatch by symbolite name
         args = tuple(map_expression_by_attr(arg, **libs) for arg in expr.args)
         kwargs = {
             k: map_expression_by_attr(arg, **libs) for k, arg in expr.kwargs_items
         }
 
+        # then get actual implementation
         f = getattr(libs[expr.func.namespace], expr.func.name)
 
         if f is Unsupported:
@@ -144,7 +185,7 @@ def map_expression_by_attr(expr: SymbolicExpression, **libs: types.ModuleType):
     return expr
 
 
-def inspect(expr: SymbolicExpression):
+def inspect(expr: OperandMixin):
     """Inspect an expression and return what is there.
     and within each key there is a dictionary relating the
     given object with the number of times it appears.
@@ -160,7 +201,7 @@ def inspect(expr: SymbolicExpression):
     return c.content
 
 
-def replace(expr: SymbolicExpression, *mapers):
+def replace(expr: OperandMixin, *mapers):
     """Replace symbols, functions, values, etc by others.
 
     If multiple mappers are provided,
@@ -180,7 +221,7 @@ def replace(expr: SymbolicExpression, *mapers):
     return map_expression(expr, collections.ChainMap(*mapers, IdentityMapper))
 
 
-def replace_by_name(expr: SymbolicExpression, **symbols):
+def replace_by_name(expr: OperandMixin, **symbols):
     """Replace Symbols by values or objects, matching by name.
 
     If a given object is not found in the mappers,
@@ -199,7 +240,7 @@ def replace_by_name(expr: SymbolicExpression, **symbols):
 
 
 def evaluate(
-    expr: SymbolicExpression,
+    expr: OperandMixin,
     **libs: types.ModuleType,
 ):
     """Evaluate expression.
@@ -218,8 +259,8 @@ def evaluate(
 
 
 def as_string(
-    expr: SymbolicExpression,
-    mapper: GetItem[SymbolicExpression, str] = _default_str_mapper,
+    expr: OperandMixin,
+    mapper: GetItem[OperandMixin, str] = _default_str_mapper,
 ):
     """Evaluate a call or symbol into a value.
 
@@ -235,7 +276,7 @@ def as_string(
 
 
 def as_function(
-    expr: SymbolicExpression,
+    expr: OperandMixin,
     function_name: str,
     params: tuple[str, ...],
     **libs: types.ModuleType,

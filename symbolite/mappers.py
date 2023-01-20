@@ -4,7 +4,7 @@
 
     Convenience mappers to manipulate expressions.
 
-    :copyright: 2022 by Symbolite Authors, see AUTHORS for more details.
+    :copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
@@ -41,32 +41,7 @@ class Unsupported(ValueError):
     """Label unsupported"""
 
 
-class ChainMap(collections.ChainMap):
-    """A chainmap that can be easily chained."""
-
-    def chain(self, other):
-        return ChainMap(self, other)
-
-    def prechain(self, other):
-        return ChainMap(other, self)
-
-
-class FromNamed(ChainMap):
-    """Maps a symbolite symbol to"""
-
-    transformation: typing.Callable[[Named], typing.Any]
-
-    def __init__(self, transformation, *args):
-        super().__init__(*args)
-        self.transformation = transformation
-
-    def __getitem__(self, item):
-        if isinstance(item, Named):
-            return self.transformation(item)
-        raise KeyError(item)
-
-
-class ToNameMapper(ChainMap):
+class ToNameMapper:
     """Maps a Function, Value or Scalar to its name.
 
     A prefix can be added.
@@ -76,6 +51,11 @@ class ToNameMapper(ChainMap):
         if isinstance(item, Named):
             return str(item)
         raise KeyError(item)
+
+
+##################
+# Useful operands
+##################
 
 
 class MatchByName:

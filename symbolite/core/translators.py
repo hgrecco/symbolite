@@ -171,7 +171,6 @@ def map_expression_by_attr(expr: OperandMixin, **libs: types.ModuleType):
         return f(*args, **kwargs)
 
     if isinstance(expr, Named):
-
         if expr.namespace != "":  # not user defined symbol
             return getattr(libs[expr.namespace], expr.name)
 

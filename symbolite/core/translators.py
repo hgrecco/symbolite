@@ -31,7 +31,7 @@ from .operands import Call, Named, OperandMixin
 
 
 def _modname_to_lib(module_name: str):
-    return f"lib{module_name.split('.')[-1]}"
+    return f"lib{module_name.split('.')[-2]}"
 
 
 def get_lib_implementation(

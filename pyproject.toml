@@ -49,5 +49,6 @@ testpaths = [
 doctest_optionflags = "NUMBER"
 
 
-[tool.isort]
-profile = "black"
+[tool.ruff]
+select = ["E", "F", "I"]
+ignore = ["E501"]

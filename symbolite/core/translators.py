@@ -203,7 +203,7 @@ def inspect(expr: OperandMixin):
     return c.content
 
 
-def replace(expr: OperandMixin, *mapers):
+def substitute(expr: OperandMixin, *mapers):
     """Replace symbols, functions, values, etc by others.
 
     If multiple mappers are provided,
@@ -223,7 +223,7 @@ def replace(expr: OperandMixin, *mapers):
     return map_expression(expr, collections.ChainMap(*mapers, IdentityMapper))
 
 
-def replace_by_name(expr: OperandMixin, **symbols):
+def substitute_by_name(expr: OperandMixin, **symbols):
     """Replace Symbols by values or objects, matching by name.
 
     If a given object is not found in the mappers,

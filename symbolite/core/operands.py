@@ -54,9 +54,13 @@ class Function(Named):
     arity: int = None
     fmt: str = None
 
+    @property
+    def call(self) -> type[Call]:
+        return Call
+
     def __call__(self, *args, **kwargs):
         if self.arity is None:
-            return Call(self, args, tuple(kwargs.items()))
+            return self.call(self, args, tuple(kwargs.items()))
         if kwargs:
             raise ValueError(
                 "If arity is given, keyword arguments should not be provided."
@@ -65,7 +69,7 @@ class Function(Named):
             raise ValueError(
                 f"Invalid number of arguments ({len(args)}), expected {self.arity}."
             )
-        return Call(self, args)
+        return self.call(self, args)
 
     def format(self, *args, **kwargs):
         if self.fmt:
@@ -262,7 +266,7 @@ class OperandMixin:
         *mappers
             dictionaries mapping source to destination objects.
         """
-        return _translators().replace(self, *mappers)
+        return _translators().substitute(self, *mappers)
 
     def subs_by_name(self, **symbols) -> OperandMixin:
         """Replace Symbols by values or objects, matching by name.
@@ -278,7 +282,7 @@ class OperandMixin:
         **symbols
             keyword arguments connecting names to values.
         """
-        return _translators().replace_by_name(self, **symbols)
+        return _translators().substitute_by_name(self, **symbols)
 
     def eval(self, **libs: types.ModuleType) -> typing.Any:
         """Evaluate expression.

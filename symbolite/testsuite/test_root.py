@@ -1,22 +1,21 @@
 import pytest
 
-from symbolite.core.operands import Function
-from symbolite.core.translators import find_libs_in_stack
-from symbolite.symbol.abstract import Symbol
+from symbolite import Function, Symbol
+from symbolite.impl import find_module_in_stack
 
 x, y, z = map(Symbol, "x y z".split())
 
-F = Function("F", "", 1)
-G = Function("G", "lib", 1)
+F = Function("F", 1)
+G = Function("G", 1)
 
 
 def test_forward_reverse():
     expr = x + 1
-    assert expr.func.name == "__add__"
+    assert expr.func.name == "add"
     assert expr.args == (x, 1)
 
     expr = 1 + x
-    assert expr.func.name == "__radd__"
+    assert expr.func.name == "radd"
     assert expr.args == (x, 1)
 
 
@@ -62,7 +61,7 @@ def test_forward_reverse():
         (+x, "(+x)"),
         (~x, "(~x)"),
         (F(x), "F(x)"),
-        (G(x), "lib.G(x)"),
+        (G(x), "G(x)"),
     ],
 )
 def test_str(expr, result):
@@ -97,7 +96,7 @@ def test_subs_by_name(expr, result):
         (x + y, {"x", "y"}),
         (x[z], {"x", "z"}),
         (F(x), {"F", "x"}),
-        (G(x), {"x"}),
+        (G(x), {"G", "x"}),
     ],
 )
 def test_symbol_names(expr, result):
@@ -107,10 +106,10 @@ def test_symbol_names(expr, result):
 @pytest.mark.parametrize(
     "expr,result",
     [
-        (x + y, {"x", "y", "libsymbol.__add__"}),
-        (x[z], {"x", "z", "libsymbol.__getitem__"}),
+        (x + y, {"x", "y", "symbol.add"}),
+        (x[z], {"x", "z", "symbol.getitem"}),
         (F(x), {"F", "x"}),
-        (G(x), {"x", "lib.G"}),
+        (G(x), {"x", "G"}),
     ],
 )
 def test_symbol_names_ops(expr, result):
@@ -125,9 +124,7 @@ def test_symbol_names_ops(expr, result):
         (F(x), set()),
         (
             G(x),
-            {
-                "lib.G",
-            },
+            set(),
         ),
     ],
 )
@@ -162,9 +159,7 @@ def test_eval(expr, result):
 
 
 def test_find_libs_in_stack():
-    assert "libsymbol" not in find_libs_in_stack()
-    assert "libsymbol" not in find_libs_in_stack(x + y)
-    from symbolite.symbol import default as libsymbol  # noqa: F401
+    assert find_module_in_stack() is None
+    from symbolite.impl import libstd as libsl  # noqa: F401
 
-    assert "libsymbol" in find_libs_in_stack()
-    assert "libsymbol" in find_libs_in_stack(x + y)
+    assert find_module_in_stack()

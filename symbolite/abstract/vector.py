@@ -15,6 +15,7 @@ import dataclasses
 
 from .scalar import Scalar
 from .symbol import Function, OperandMixin, Symbol
+from ..core.base import Unsupported
 
 
 @dataclasses.dataclass(frozen=True)
@@ -22,6 +23,9 @@ class Vector(Symbol):
     """A user defined symbol."""
 
     namespace = ""
+
+    def __getattr__(self, key):
+        return Unsupported
 
 
 @dataclasses.dataclass(frozen=True)

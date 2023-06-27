@@ -63,8 +63,9 @@ class OperandMixin:
     python operators that map to magic methods
 
     The following magic methods are not mapped to symbolite Functions
-      - __eq__, __hash__, __ne__ collides with reasonble use of comparisons
-        within user code (including uses as dict keys).
+      - __hash__, __eq__, __ne__ collides with reasonble use of comparisons
+        within user code (including uses as dict keys). 
+        We defined `.eq` y `.ne` methods for the two lasts.
       - __contains__ is coerced to boolean.
       - __bool__ yields a TypeError if not boolean.
       - __str__, __bytes__, __repr__ yields a TypeError if the return value
@@ -113,6 +114,12 @@ class OperandMixin:
         """Defines behavior for when an item is accessed,
         using the notation self[key]."""
         return getitem(self, key)
+    
+    # Emulating attribute
+    def __getattr__(self, key: ty.Any) -> Call:
+        """Defines behavior for when an item is accessed,
+        using the notation self.key"""
+        return symgetattr(self, key)
 
     # Normal arithmetic operators
     def __add__(self, other: ty.Any) -> Call:
@@ -311,7 +318,7 @@ class OperandMixin:
 
         return set(map(str, symbols))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return as_string(self)
 
 
@@ -339,12 +346,13 @@ class Call(OperandMixin, BaseCall):
 class Symbol(Named, OperandMixin, BaseSymbol):
     """A symbol."""
 
-    namespace = ""
+    namespace: ty.ClassVar[str] = ""
 
 
 @dataclasses.dataclass(frozen=True)
 class SymbolFunction(Function):
-    namespace = "symbol"
+    
+    namespace: ty.ClassVar[str]  = "symbol"
 
 
 # Comparison methods (not operator)
@@ -359,6 +367,9 @@ ge = SymbolFunction("ge", 2, "({} >= {})")
 
 # Emulating container types
 getitem = SymbolFunction("getitem", 2, "{}[{}]")
+
+# Emulating attribute
+symgetattr = SymbolFunction("symgetattr", 2, "{}[{}]")
 
 # Emulating numeric types
 add = SymbolFunction("add", 2, "({} + {})")

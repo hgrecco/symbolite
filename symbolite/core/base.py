@@ -26,14 +26,14 @@ class BaseFunction:
     """Base class for functions"""
 
     name: str
-    namespace: str
+    namespace: ty.ClassVar[str] = ""
 
 
 class BaseSymbol:
     """Base class for symbols"""
 
     name: str
-    namespace: str
+    namespace: ty.ClassVar[str] = ""
 
 
 @dataclasses.dataclass(frozen=True)
@@ -41,7 +41,7 @@ class Named:
     """A named primitive."""
 
     name: str
-    namespace: ty.ClassVar = ""
+    namespace: ty.ClassVar[str] = ""
 
     def __str__(self):
         if self.namespace:

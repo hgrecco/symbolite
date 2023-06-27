@@ -29,6 +29,7 @@ ge = op.ge
 
 # Emulating container types
 getitem = op.getitem
+symgetattr = getattr
 
 # Emulating numeric types
 add = op.add

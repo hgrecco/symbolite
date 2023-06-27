@@ -13,6 +13,7 @@ from __future__ import annotations
 import dataclasses
 
 from .symbol import Function, Symbol
+from ..core.base import Unsupported
 
 
 @dataclasses.dataclass(frozen=True)
@@ -20,6 +21,12 @@ class Scalar(Symbol):
     """A user defined symbol."""
 
     namespace = ""
+
+    def __getitem__(self, key):
+        return Unsupported
+
+    def __getattr__(self, key):
+        return Unsupported
 
 
 @dataclasses.dataclass(frozen=True)

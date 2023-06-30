@@ -11,34 +11,40 @@
 from __future__ import annotations
 
 import dataclasses
+from typing import Any
 
-from .symbol import Function, Symbol
-from ..core.base import Unsupported
+from ..core import Unsupported
+from .symbol import Symbol, BaseFunction
 
+NumberT = int | float | complex
 
 @dataclasses.dataclass(frozen=True)
 class Scalar(Symbol):
     """A user defined symbol."""
 
-    namespace = ""
-
-    def __getitem__(self, key):
+    def __getitem__(self, key: Any):
         return Unsupported
 
-    def __getattr__(self, key):
+    def __getattr__(self, key: Any):
         return Unsupported
 
+@dataclasses.dataclass(frozen=True)
+class ScalarUnaryFunction(BaseFunction):
+
+    namespace: str = "scalar"
+    arity: int = 1
+
+    def __call__(self, arg1: Scalar | NumberT) -> Scalar:
+        return super()._call(arg1) # type: ignore
 
 @dataclasses.dataclass(frozen=True)
-class ScalarConstant(Scalar):
-    """A user defined symbol."""
+class ScalarBinaryFunction(BaseFunction):
 
-    namespace = "scalar"
+    namespace: str = "scalar"
+    arity: int = 2
 
-
-@dataclasses.dataclass(frozen=True)
-class ScalarFunction(Function):
-    namespace = "scalar"
+    def __call__(self, arg1: Scalar | NumberT, arg2: Scalar | NumberT) -> Scalar:
+        return super()._call(arg1, arg2) # type: ignore
 
 
 # "gcd": None,  # 1 to ---
@@ -48,59 +54,59 @@ class ScalarFunction(Function):
 # "perm": None,  # 1 or 2
 # "log": None,  # 1 or 2 is used as log(x, e)
 
-abs = ScalarFunction("abs", 1)
-acos = ScalarFunction("acos", 1)
-acosh = ScalarFunction("acosh", 1)
-asin = ScalarFunction("asin", 1)
-asinh = ScalarFunction("asinh", 1)
-atan = ScalarFunction("atan", 1)
-atan2 = ScalarFunction("atan2", 2)
-atanh = ScalarFunction("atanh", 1)
-ceil = ScalarFunction("ceil", 1)
-comb = ScalarFunction("comb", 1)
-copysign = ScalarFunction("copysign", 1)
-cos = ScalarFunction("cos", 1)
-cosh = ScalarFunction("cosh", 1)
-degrees = ScalarFunction("degrees", 1)
-erf = ScalarFunction("erf", 1)
-erfc = ScalarFunction("erfc", 1)
-exp = ScalarFunction("exp", 1)
-expm1 = ScalarFunction("expm1", 1)
-fabs = ScalarFunction("fabs", 1)
-factorial = ScalarFunction("factorial", 1)
-floor = ScalarFunction("floor", 1)
-fmod = ScalarFunction("fmod", 1)
-frexp = ScalarFunction("frexp", 1)
-gamma = ScalarFunction("gamma", 1)
-hypot = ScalarFunction("gamma", 1)
-isfinite = ScalarFunction("isfinite", 1)
-isinf = ScalarFunction("isinf", 1)
-isnan = ScalarFunction("isnan", 1)
-isqrt = ScalarFunction("isqrt", 1)
-ldexp = ScalarFunction("ldexp", 2)
-lgamma = ScalarFunction("lgamma", 1)
-log = ScalarFunction("log", 1)
-log10 = ScalarFunction("log10", 1)
-log1p = ScalarFunction("log1p", 1)
-log2 = ScalarFunction("log2", 1)
-modf = ScalarFunction("modf", 1)
-nextafter = ScalarFunction("nextafter", 2)
-pow = ScalarFunction("pow", 1)
-radians = ScalarFunction("radians", 1)
-remainder = ScalarFunction("remainder", 2)
-sin = ScalarFunction("sin", 1)
-sinh = ScalarFunction("sinh", 1)
-sqrt = ScalarFunction("sqrt", 1)
-tan = ScalarFunction("tan", 1)
-tanh = ScalarFunction("tanh", 1)
-tan = ScalarFunction("tan", 1)
-trunc = ScalarFunction("trunc", 1)
-ulp = ScalarFunction("ulp", 1)
+abs = ScalarUnaryFunction("abs")
+acos = ScalarUnaryFunction("acos")
+acosh = ScalarUnaryFunction("acosh")
+asin = ScalarUnaryFunction("asin")
+asinh = ScalarUnaryFunction("asinh")
+atan = ScalarUnaryFunction("atan")
+atan2 = ScalarBinaryFunction("atan2")
+atanh = ScalarUnaryFunction("atanh")
+ceil = ScalarUnaryFunction("ceil")
+comb = ScalarUnaryFunction("comb")
+copysign = ScalarUnaryFunction("copysign")
+cos = ScalarUnaryFunction("cos")
+cosh = ScalarUnaryFunction("cosh")
+degrees = ScalarUnaryFunction("degrees")
+erf = ScalarUnaryFunction("erf")
+erfc = ScalarUnaryFunction("erfc")
+exp = ScalarUnaryFunction("exp")
+expm1 = ScalarUnaryFunction("expm1")
+fabs = ScalarUnaryFunction("fabs")
+factorial = ScalarUnaryFunction("factorial")
+floor = ScalarUnaryFunction("floor")
+fmod = ScalarUnaryFunction("fmod")
+frexp = ScalarUnaryFunction("frexp")
+gamma = ScalarUnaryFunction("gamma")
+hypot = ScalarUnaryFunction("gamma")
+isfinite = ScalarUnaryFunction("isfinite")
+isinf = ScalarUnaryFunction("isinf")
+isnan = ScalarUnaryFunction("isnan")
+isqrt = ScalarUnaryFunction("isqrt")
+ldexp = ScalarBinaryFunction("ldexp")
+lgamma = ScalarUnaryFunction("lgamma")
+log = ScalarUnaryFunction("log")
+log10 = ScalarUnaryFunction("log10")
+log1p = ScalarUnaryFunction("log1p")
+log2 = ScalarUnaryFunction("log2")
+modf = ScalarUnaryFunction("modf")
+nextafter = ScalarUnaryFunction("nextafter")
+pow = ScalarUnaryFunction("pow")
+radians = ScalarUnaryFunction("radians")
+remainder = ScalarBinaryFunction("remainder")
+sin = ScalarUnaryFunction("sin")
+sinh = ScalarUnaryFunction("sinh")
+sqrt = ScalarUnaryFunction("sqrt")
+tan = ScalarUnaryFunction("tan")
+tanh = ScalarUnaryFunction("tanh")
+tan = ScalarUnaryFunction("tan")
+trunc = ScalarUnaryFunction("trunc")
+ulp = ScalarUnaryFunction("ulp")
 
-e = ScalarConstant("e")
-inf = ScalarConstant("inf")
-pi = ScalarConstant("pi")
-nan = ScalarConstant("nan")
-tau = ScalarConstant("tau")
+e = Scalar("e", namespace="scalar")
+inf = Scalar("inf", namespace="scalar")
+pi = Scalar("pi", namespace="scalar")
+nan = Scalar("nan", namespace="scalar")
+tau = Scalar("tau", namespace="scalar")
 
-del Function, Symbol, dataclasses
+del BaseFunction, Symbol, dataclasses

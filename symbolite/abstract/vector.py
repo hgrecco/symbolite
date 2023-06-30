@@ -12,36 +12,64 @@
 from __future__ import annotations
 
 import dataclasses
+from typing import  Any,Iterable, overload
 
-from .scalar import Scalar
-from .symbol import Function, OperandMixin, Symbol
-from ..core.base import Unsupported
+from symbolite.abstract.symbol import Symbol, BaseFunction
 
+from ..core import Unsupported
+from .scalar import Scalar, NumberT
+from .symbol import BaseFunction, Symbol
+
+VectorT = Iterable[NumberT]
 
 @dataclasses.dataclass(frozen=True)
 class Vector(Symbol):
     """A user defined symbol."""
 
-    namespace = ""
+    def __getitem__(self, key: int | Scalar) -> Scalar:
+        return super().__getitem__(key)
 
-    def __getattr__(self, key):
+    def __getattr__(self, key: Any):
         return Unsupported
 
 
 @dataclasses.dataclass(frozen=True)
-class VectorFunction(Function):
-    namespace = "vector"
+class CumulativeFunction(BaseFunction):
+
+    namespace: str = "vector"
+    arity: int = 1
+
+    def __call__(self, arg1: Vector | VectorT) -> Scalar:
+        return super()._call(arg1) # type: ignore
 
 
-sum = VectorFunction("sum", arity=1)
-prod = VectorFunction("prod", arity=1)
+sum = CumulativeFunction("sum", namespace="vector")
+prod = CumulativeFunction("prod", namespace="vector")
 
+
+@overload
+def vectorize(
+    expr: Symbol,
+    symbol_names: tuple[str, ...] | dict[str, int],
+    varname: str = "vec",
+) -> Symbol:
+    ...
+
+
+@overload
+def vectorize(
+    expr: Iterable[Symbol],
+    symbol_names: tuple[str, ...] | dict[str, int],
+    varname: str = "vec",
+) -> tuple[Symbol, ...]:
+    ...
+    
 
 def vectorize(
-    expr: OperandMixin,
+    expr: Symbol | Iterable[Symbol],
     symbol_names: tuple[str, ...] | dict[str, int],
-    varname="arr",
-) -> OperandMixin:
+    varname: str = "vec",
+) -> Symbol | tuple[Symbol, ...]:
     """Vectorize expression by replacing test_scalar symbols
     by an array at a given indices.
 
@@ -55,6 +83,9 @@ def vectorize(
     varname
         name of the array variable
     """
+    if not isinstance(expr, Symbol):
+        return tuple(vectorize(symbol, symbol_names, varname) for symbol in expr)
+
     if isinstance(symbol_names, dict):
         it = zip(symbol_names.values(), symbol_names.keys())
     else:
@@ -66,7 +97,15 @@ def vectorize(
     return expr.subs(reps)
 
 
-def auto_vectorize(expr, varname="vec") -> tuple[tuple[str, ...], OperandMixin]:
+@overload
+def auto_vectorize(expr: Symbol, varname: str = "vec") -> tuple[tuple[str, ...], Symbol]:
+    ...
+
+@overload
+def auto_vectorize(expr: Iterable[Symbol], varname: str = "vec") -> tuple[tuple[str, ...], tuple[Symbol, ...]]:
+    ...
+
+def auto_vectorize(expr: Symbol | Iterable[Symbol], varname: str = "vec") -> tuple[tuple[str, ...], Symbol | tuple[Symbol, ...]]:
     """Vectorize expression by replacing all test_scalar symbols
     by an array at a given indices. Symbols are ordered into
     the array alphabetically.
@@ -84,5 +123,13 @@ def auto_vectorize(expr, varname="vec") -> tuple[tuple[str, ...], OperandMixin]:
     SymbolicExpression
         vectorized expression.
     """
-    symbol_names = tuple(sorted(expr.symbol_names("")))
-    return symbol_names, vectorize(expr, symbol_names, varname)
+    if not isinstance(expr, Symbol):
+        expr = tuple(expr)
+        out = set[str]()
+        for symbol in expr:
+            out.update(symbol.symbol_names(""))
+        symbol_names = tuple(sorted(out))
+        return symbol_names, vectorize(expr, symbol_names, varname)
+    else:
+        symbol_names = tuple(sorted(expr.symbol_names("")))
+        return symbol_names, vectorize(expr, symbol_names, varname)

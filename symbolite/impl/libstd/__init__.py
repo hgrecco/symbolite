@@ -3,7 +3,7 @@
     ~~~~~~~~~~~~~~~~~~~~~
 
     Translate symbolite
-    into values and functions defined in Python's standard library.
+    into values and functions defined in Python standard library.
 
     :copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.

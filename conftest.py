@@ -13,6 +13,7 @@ def setup_test_readme():
     with TEST_README.open("w") as out, README.open("r") as readme:
         mode = None
         output = []
+
         output.append("def all_tests():\n")
         for i, line in enumerate(readme.readlines()):
             output.append("\n")
@@ -69,5 +70,6 @@ def rm_tree(pth):
 def pytest_sessionfinish(session, exitstatus):
     try:
         rm_tree(GENERATED_PATH)
+        pass
     except FileNotFoundError:
         pass

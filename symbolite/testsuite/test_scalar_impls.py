@@ -1,9 +1,11 @@
 import math as pymath
 from operator import attrgetter
+import types
+from typing import Any
 
 import pytest
 
-from symbolite.core.base import Unsupported
+from symbolite.core import Unsupported
 from symbolite.impl import get_all_implementations
 
 all_impl = get_all_implementations()
@@ -74,7 +76,7 @@ _values = {
 _all = {**_functions, **_values}
 
 
-def almost_equal(x, y, threshold=0.0001):
+def almost_equal(x: Any, y: Any, threshold: float=0.0001):
     if isinstance(x, bool):
         assert x == y
     elif isinstance(x, tuple):
@@ -90,7 +92,7 @@ def almost_equal(x, y, threshold=0.0001):
 
 
 @pytest.mark.parametrize("libsl", all_impl.values(), ids=all_impl.keys())
-def test_is_defined(libsl):
+def test_is_defined(libsl: types.ModuleType):
     """Test that that all included libraries define members defined in symbolite.lib"""
     for k in tuple(_functions.keys()) + tuple(_values.keys()):
         name = f"scalar.{k}"
@@ -102,7 +104,7 @@ def test_is_defined(libsl):
 
 @pytest.mark.parametrize("libsl", all_impl.values(), ids=all_impl.keys())
 @pytest.mark.parametrize("func_name_and_values", _all.items(), ids=_all.keys())
-def test_compare(libsl, func_name_and_values):
+def test_compare(libsl: types.ModuleType, func_name_and_values: tuple[Any, Any]):
     """Compare implementation for different mappers
     for a (very small) subset of values.
     """

@@ -47,7 +47,7 @@ testpaths = [
     "symbolite/testsuite"
 ]
 doctest_optionflags = "NUMBER"
-
+filterwarnings = "ignore:No libsl provided, defaulting to Python standard library."
 
 [tool.ruff]
 select = ["E", "F", "I"]

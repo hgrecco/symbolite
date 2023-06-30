@@ -15,6 +15,7 @@ will normally do in Python.
 (x + (3 * y))
 ```
 
+An expression is just an unnamed Symbol.
 You can easily replace the symbols by the desired value.
 
 ```python
@@ -30,7 +31,7 @@ The output is still a symbolic expression, which you can evaluate:
 11
 ```
 
-Notice that we also got a warning (`No libsl provided, defaulting to Python's standard library.`).
+Notice that we also got a warning (`No libsl provided, defaulting to Python standard library.`).
 This is because evaluating an expression requires a actual library implementation,
 name usually as `libsl`. The default one just uses python's math module.
 
@@ -50,16 +51,19 @@ You can also import it with the right name and it will be found
 11
 ```
 
-In addition to the `Symbol` class, there is also a `Scalar` class available
-to represent integer, floats or complex numbers.
+In addition to the `Symbol` class, there is also a `Scalar` and `Vector` classes 
+to represent integer, floats or complex numbers, and an array of those.
 
 ```python
->>> from symbolite import Scalar
+>>> from symbolite import Scalar, Vector
 >>> x = Scalar("x")
 >>> y = Scalar("y")
+>>> v = Vector("v")
 >>> expr1 = x + 3 * y
 >>> print(expr1)
 (x + (3 * y))
+>>> print(2 * v)
+(2 * v)
 ```
 
 Mathematical functions that operate on scalars are available in the `scalar` module.
@@ -71,12 +75,23 @@ Mathematical functions that operate on scalars are available in the `scalar` mod
 (3.0 * scalar.cos(0.5))
 ```
 
-(Functions are named according to the python math module).
+Mathematical functions that operate on vectors are available in the `vector` module.
+
+```python
+>>> from symbolite import vector
+>>> expr4 = 3. * vector.sum((1, 2, 3))
+>>> print(expr4)
+(3.0 * vector.sum((1, 2, 3)))
+```
+
+Notice that functions are named according to the python math module.
 Again, this is a symbolic expression until evaluated.
 
 ```python
 >>> expr3.eval()
 2.6327476856711
+>>> expr4.eval()
+18.0
 ```
 
 Two other implementations are provided: NumPy and SymPy:
@@ -104,6 +119,9 @@ like SymPy that contains a Scalar object you can still evaluate.
 ```
 
 which is actually a SymPy expression with a SymPy symbol (`x`).
+
+And by the way, checkout `vectorize` and `auto_vectorize` functions
+in the vector module.
 
 ### Installing:
 

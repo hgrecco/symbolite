@@ -1,7 +1,9 @@
+import types
+from typing import Any
 import pytest
 
-from symbolite import scalar, vector
-from symbolite.core.base import Unsupported
+from symbolite import scalar, vector, Symbol
+from symbolite.core import Unsupported
 from symbolite.impl import get_all_implementations
 
 all_impl = get_all_implementations()
@@ -9,6 +11,19 @@ all_impl = get_all_implementations()
 x, y = map(scalar.Scalar, ("x", "y"))
 vec = vector.Vector("vec")
 v = vector.Vector("v")
+
+xsy = Symbol("xsy")
+
+@pytest.mark.mypy_testing
+def test_typing():
+    reveal_type(v + v) # R: symbolite.abstract.vector.Vector
+    reveal_type(2 + v) # R: symbolite.abstract.vector.Vector
+    reveal_type(v + 2) # R: symbolite.abstract.vector.Vector
+    # reveal_type(v + xsy) # R: symbolite.abstract.symbol.Symbol
+    reveal_type(xsy + v) # R: symbolite.abstract.symbol.Symbol
+    reveal_type(vec[0]) # R: symbolite.abstract.scalar.Scalar
+    reveal_type(vec[x]) # R: symbolite.abstract.scalar.Scalar
+    reveal_type(vector.sum(vec)) # R: symbolite.abstract.scalar.Scalar
 
 
 def test_vector():
@@ -31,35 +46,34 @@ def test_methods():
 
 
 @pytest.mark.parametrize("libsl", all_impl.values(), ids=all_impl.keys())
-def test_impl(libsl):
-    v = (1, 2, 3, 4)
-
+def test_impl(libsl: types.ModuleType):
+    v = vector.Vector("v")
     try:
         expr = vector.sum(v)
-        assert expr.eval(libsl=libsl) == 10
+        assert expr.subs_by_name(v=(1, 2, 3, 4)).eval(libsl=libsl) == 10
     except Unsupported:
         pass
 
     expr = vector.prod(v)
-    assert expr.eval(libsl=libsl) == 24
+    assert expr.subs_by_name(v=(1, 2, 3, 4)).eval(libsl=libsl) == 24
 
 
 def test_impl_numpy():
     try:
         import numpy as np
 
-        from symbolite.impl.libnumpy import libnumpy as libsl
+        from symbolite.impl import libnumpy as libsl
     except ImportError:
         return
 
     v = np.asarray((1, 2, 3))
 
-    expr = vector.Vector("vec") + 1
-    assert np.allclose(expr.replace_by_name(vec=v).eval(), v + 1)
+    expr1 = vector.Vector("vec") + 1
+    assert np.allclose(expr1.subs_by_name(vec=v).eval(), v + 1)
 
-    expr = scalar.cos(vector.Vector("vec"))
+    expr2 = scalar.cos(vector.sum(vector.Vector("vec")))
 
-    assert np.allclose(expr.substitute_by_name(vec=v).eval(libsl=libsl), np.cos(v))
+    assert np.allclose(expr2.subs_by_name(vec=v).eval(libsl=libsl), np.cos(np.sum(v)))
 
 
 def test_impl_sympy():
@@ -86,12 +100,23 @@ def test_impl_sympy():
         (x + 2 * y, dict(x=5, y=3), vec[5] + 2 * vec[3]),
     ],
 )
-def test_vectorize(expr, params, result):
-    assert vector.vectorize(expr, params, result)
+def test_vectorize(expr: vector.Vector, params: Any, result: Symbol):
+    assert vector.vectorize(expr, params) == result
 
 
 def test_vectorize_non_default_varname():
-    assert vector.vectorize(x + 2 * y, ("x", "y"), v[0] + 2 * v[1])
+    assert vector.vectorize(x + 2 * y, ("x", "y"), varname="v") == v[0] + 2 * v[1]
+
+def test_vectorize_many():
+    eqs = [
+        x + 2 * y,
+        y + 3 * x,
+    ]
+    result = (
+        vec[2] + 2 * vec[0],
+        vec[0] + 3 * vec[2],
+    )
+    assert vector.vectorize(eqs, ("y", "z", "x")) == result
 
 
 @pytest.mark.parametrize(
@@ -102,9 +127,21 @@ def test_vectorize_non_default_varname():
         (x + 2 * scalar.cos(y), (("x", "y"), vec[0] + 2 * scalar.cos(vec[1]))),
     ],
 )
-def test_autovectorize(expr, result):
+def test_autovectorize(expr: Symbol, result: Symbol):
     assert vector.auto_vectorize(expr) == result
 
 
 def test_autovectorize_non_default_varname():
     assert vector.auto_vectorize(x + 2 * y, "v") == (("x", "y"), v[0] + 2 * v[1])
+
+
+def test_autovectorize_many():
+    eqs = [
+        x + 2 * y,
+        y + 3 * x,
+    ]
+    result = (
+        vec[0] + 2 * vec[1],
+        vec[1] + 3 * vec[0],
+    )
+    assert vector.auto_vectorize(eqs) == (("x", "y"), result)

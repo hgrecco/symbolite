@@ -2,7 +2,7 @@
     symbolite.core
     ~~~~~~~~~~~~~~
 
-    Symbolite core classes and functions, includin mappers.
+    Symbolite core classes and functions.
 
     :copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
@@ -10,14 +10,17 @@
 
 import collections
 import types
-import typing as ty
 import warnings
+from typing import Any, Callable
 
 from ..impl import find_module_in_stack
-from . import mappers
 
 
-def as_string(expr: ty.Any) -> str:
+class Unsupported(ValueError):
+    """Label unsupported"""
+
+
+def as_string(expr: Any) -> str:
     """Return the expression as a string.
 
     Parameters
@@ -25,17 +28,15 @@ def as_string(expr: ty.Any) -> str:
     expr
         symbolic expression.
     """
-
-    visitor = mappers.StringifyVisitor()
-    return visitor(expr)
+    return str(expr)
 
 
 def as_function(
-    expr: ty.Any,
+    expr: Any,
     function_name: str,
     params: tuple[str, ...],
     libsl: types.ModuleType | None = None,
-) -> ty.Callable[..., ty.Any]:
+) -> Callable[..., Any]:
     """Converts the expression to a callable function.
 
     Parameters
@@ -57,10 +58,12 @@ def as_function(
     if libsl is None:
         libsl = find_module_in_stack()
     if libsl is None:
-        warnings.warn("No libsl provided, defaulting to Python's standard library.")
+        warnings.warn("No libsl provided, defaulting to Python standard library.")
         from ..impl import libstd as libsl
 
-    lm = {}
+    assert libsl is not None
+
+    lm: dict[str, Any] = {}
     exec(
         function_def,
         {
@@ -74,23 +77,22 @@ def as_function(
     return lm[function_name]
 
 
-def inspect(expr: ty.Any) -> collections.Counter[ty.Any]:
-    """Inspect an expression and return what is there.
-    and within each key there is a dictionary relating the
-    given object with the number of times it appears.
+def inspect(expr: Any) -> dict[Any, int]:
+    """Inspect an expression and return what is there
+    and how many times.
 
     Parameters
     ----------
     expr
         symbolic expression.
     """
+    if hasattr(expr, "yield_named"):
+        cnt = collections.Counter[Any](expr.yield_named())
+        return dict(cnt)
+    return {expr: 1}
 
-    visitor = mappers.CounterVisitor()
-    visitor(expr)
-    return visitor.counter
 
-
-def evaluate(expr: ty.Any, libsl: types.ModuleType | None = None) -> ty.Any:
+def evaluate(expr: Any, libsl: types.ModuleType | None = None) -> Any:
     """Evaluate expression.
 
     Parameters
@@ -104,14 +106,15 @@ def evaluate(expr: ty.Any, libsl: types.ModuleType | None = None) -> ty.Any:
     if libsl is None:
         libsl = find_module_in_stack()
     if libsl is None:
-        warnings.warn("No libsl provided, defaulting to Python's standard library.")
+        warnings.warn("No libsl provided, defaulting to Python standard library.")
         from ..impl import libstd as libsl
 
-    visitor = mappers.EvaluateVisitor(libsl)
-    return visitor(expr)
+    if hasattr(expr, "eval"):
+        return expr.eval(libsl)
+    return expr
 
 
-def substitute(expr: ty.Any, replacements: dict[ty.Any, ty.Any]):
+def substitute(expr: Any, replacements: dict[Any, Any]) -> Any:
     """Replace symbols, functions, values, etc by others.
 
     Parameters
@@ -121,21 +124,22 @@ def substitute(expr: ty.Any, replacements: dict[ty.Any, ty.Any]):
     replacements
         replacement dictionary.
     """
+    if hasattr(expr, "subs"):
+        return expr.subs(replacements)
+    return expr
 
-    visitor = mappers.SubstituteVisitor(replacements)
-    return visitor(expr)
 
-
-def substitute_by_name(expr: ty.Any, **symbols: ty.Any):
+def substitute_by_name(expr: Any, **replacements: Any):
     """Replace Symbols by values or objects, matching by name.
 
     Parameters
     ----------
     expr
         symbolic expression.
-    symbols
+    replacements
         replacement dictionary.
     """
 
-    visitor = mappers.SubstituteByNameVisitor(symbols)
-    return visitor(expr)
+    if hasattr(expr, "subs_by_name"):
+        return expr.subs_by_name(**replacements)
+    return expr

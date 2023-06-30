@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from symbolite.core.base import Unsupported
+from symbolite.core import Unsupported
 
 abs = np.abs
 acos = np.arccos

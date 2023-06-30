@@ -12,7 +12,7 @@
 import math
 import operator
 
-from ...core.base import Unsupported
+from ...core import Unsupported
 
 op_getitem = operator.getitem
 

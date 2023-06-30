@@ -2,17 +2,17 @@ from __future__ import annotations
 
 import dataclasses
 import types
-import typing as ty
 
-from ..abstract.symbol import OperandMixin, Symbol
+from typing import Iterable, Any
+from ..abstract.symbol import Symbol
 
 
-class SymbolicList(list[OperandMixin]):
+class SymbolicList(list[Symbol]):
     @classmethod
-    def from_iterable(cls, it: ty.Iterable[OperandMixin]):
+    def from_iterable(cls, it: Iterable[Symbol]):
         return cls(it)
 
-    def subs(self, *mappers: dict[ty.Any, ty.Any]) -> SymbolicList:
+    def subs(self, *mappers: dict[Any, Any]) -> SymbolicList:
         """Replace symbols, functions, values, etc by others.
 
         If multiple mappers are provided,
@@ -28,7 +28,7 @@ class SymbolicList(list[OperandMixin]):
         """
         return self.__class__.from_iterable((se.subs(*mappers) for se in self))
 
-    def subs_by_name(self, **symbols: ty.Any) -> SymbolicList:
+    def subs_by_name(self, **symbols: Any) -> SymbolicList:
         """Replace Symbols by values or objects, matching by name.
 
         If multiple mappers are provided,
@@ -90,7 +90,7 @@ class SymbolicNamespace:
 class AutoSymbol(Symbol):
     name: str = "<auto>"
 
-    def __set_name__(self, owner: ty.Any, name: str):
+    def __set_name__(self, owner: Any, name: str):
         if issubclass(owner, SymbolicNamespace):
             object.__setattr__(self, "name", name)
             owner.expressions.append(self)

@@ -3,7 +3,7 @@
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Translate symbolite.abstract.scalar
-    into values and functions in Python's standard library.
+    into values and functions in Python standard library.
 
     :copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import math
 
-from ...core.base import Unsupported
+from ...core import Unsupported
 
 # "gcd": None,  # 1 to ---
 # "hypot": None,  # 1 to ---

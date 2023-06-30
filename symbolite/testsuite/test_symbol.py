@@ -1,22 +1,34 @@
 import pytest
 
 from symbolite import Function, Symbol
+from symbolite.abstract.symbol import Expression
 from symbolite.impl import find_module_in_stack
+
+from typing_extensions import reveal_type
 
 x, y, z = map(Symbol, "x y z".split())
 
-F = Function("F", 1)
-G = Function("G", 1)
+F = Function("F", arity=1)
+G = Function("G", arity=1)
+
+
+@pytest.mark.mypy_testing
+def test_typing():
+    reveal_type(x + y) # R: symbolite.abstract.symbol.Symbol
+    reveal_type(2 + y) # R: symbolite.abstract.symbol.Symbol
+    reveal_type(x + 2) # R: symbolite.abstract.symbol.Symbol
 
 
 def test_forward_reverse():
     expr = x + 1
-    assert expr.func.name == "add"
-    assert expr.args == (x, 1)
+    assert isinstance(expr.expression, Expression)
+    assert expr.expression.func.name == "add"
+    assert expr.expression.args == (x, 1)
 
     expr = 1 + x
-    assert expr.func.name == "radd"
-    assert expr.args == (x, 1)
+    assert isinstance(expr.expression, Expression)
+    assert expr.expression.func.name == "radd"
+    assert expr.expression.args == (x, 1)
 
 
 @pytest.mark.parametrize(
@@ -64,7 +76,7 @@ def test_forward_reverse():
         (G(x), "G(x)"),
     ],
 )
-def test_str(expr, result):
+def test_str(expr: Symbol, result: Symbol):
     assert str(expr) == result
 
 
@@ -75,7 +87,7 @@ def test_str(expr, result):
         (x + 2 * F(y), x + 2 * F(z)),
     ],
 )
-def test_subs(expr, result):
+def test_subs(expr: Symbol, result: Symbol):
     assert expr.subs({y: z}) == result
 
 
@@ -86,7 +98,7 @@ def test_subs(expr, result):
         (x + 2 * F(y), x + 2 * F(z)),
     ],
 )
-def test_subs_by_name(expr, result):
+def test_subs_by_name(expr: Symbol, result: Symbol):
     assert expr.subs_by_name(y=z) == result
 
 
@@ -99,7 +111,7 @@ def test_subs_by_name(expr, result):
         (G(x), {"G", "x"}),
     ],
 )
-def test_symbol_names(expr, result):
+def test_symbol_names(expr: Symbol, result: set[str]):
     assert expr.symbol_names() == result
 
 
@@ -112,7 +124,7 @@ def test_symbol_names(expr, result):
         (G(x), {"x", "G"}),
     ],
 )
-def test_symbol_names_ops(expr, result):
+def test_symbol_names_ops(expr: Symbol, result: set[str]):
     assert expr.symbol_names(None) == result
 
 
@@ -128,7 +140,7 @@ def test_symbol_names_ops(expr, result):
         ),
     ],
 )
-def test_symbol_names_namespace(expr, result):
+def test_symbol_names_namespace(expr: Symbol, result: Symbol):
     assert expr.symbol_names(namespace="lib") == result
 
 
@@ -143,7 +155,7 @@ class Scalar(Symbol):
         # (x + 2 * F(y), x + 2 * F(z)),
     ],
 )
-def test_eval_str(expr, result):
+def test_eval_str(expr: Symbol, result: Symbol):
     assert eval(str(expr.subs_by_name(x=1, y=3))) == result
 
 
@@ -154,7 +166,7 @@ def test_eval_str(expr, result):
         # (x + 2 * F(y), x + 2 * F(z)),
     ],
 )
-def test_eval(expr, result):
+def test_eval(expr: Symbol, result: Symbol):
     assert expr.subs_by_name(x=1, y=3).eval() == result
 
 

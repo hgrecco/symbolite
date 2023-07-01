@@ -1,8 +1,9 @@
 import types
 from typing import Any
+
 import pytest
 
-from symbolite import scalar, vector, Symbol
+from symbolite import Symbol, scalar, vector
 from symbolite.core import Unsupported
 from symbolite.impl import get_all_implementations
 
@@ -14,16 +15,21 @@ v = vector.Vector("v")
 
 xsy = Symbol("xsy")
 
+requires_numpy = pytest.mark.skipif("libnumpy" not in all_impl, reason="Requires NumPy")
+requires_sympy = pytest.mark.skipif("libsympy" not in all_impl, reason="Requires SymPy")
+
+
 @pytest.mark.mypy_testing
+# noqa: F821
 def test_typing():
-    reveal_type(v + v) # R: symbolite.abstract.vector.Vector
-    reveal_type(2 + v) # R: symbolite.abstract.vector.Vector
-    reveal_type(v + 2) # R: symbolite.abstract.vector.Vector
-    # reveal_type(v + xsy) # R: symbolite.abstract.symbol.Symbol
-    reveal_type(xsy + v) # R: symbolite.abstract.symbol.Symbol
-    reveal_type(vec[0]) # R: symbolite.abstract.scalar.Scalar
-    reveal_type(vec[x]) # R: symbolite.abstract.scalar.Scalar
-    reveal_type(vector.sum(vec)) # R: symbolite.abstract.scalar.Scalar
+    reveal_type(v + v)  # R: symbolite.abstract.vector.Vector # noqa: F821
+    reveal_type(2 + v)  # R: symbolite.abstract.vector.Vector # noqa: F821
+    reveal_type(v + 2)  # R: symbolite.abstract.vector.Vector # noqa: F821
+    # reveal_type(v + xsy) # R: symbolite.abstract.symbol.Symbol # noqa: F821
+    reveal_type(xsy + v)  # R: symbolite.abstract.symbol.Symbol # noqa: F821
+    reveal_type(vec[0])  # R: symbolite.abstract.scalar.Scalar # noqa: F821
+    reveal_type(vec[x])  # R: symbolite.abstract.scalar.Scalar # noqa: F821
+    reveal_type(vector.sum(vec))  # R: symbolite.abstract.scalar.Scalar # noqa: F821
 
 
 def test_vector():
@@ -58,6 +64,7 @@ def test_impl(libsl: types.ModuleType):
     assert expr.subs_by_name(v=(1, 2, 3, 4)).eval(libsl=libsl) == 24
 
 
+@requires_numpy
 def test_impl_numpy():
     try:
         import numpy as np
@@ -76,6 +83,7 @@ def test_impl_numpy():
     assert np.allclose(expr2.subs_by_name(vec=v).eval(libsl=libsl), np.cos(np.sum(v)))
 
 
+@requires_sympy
 def test_impl_sympy():
     try:
         import sympy as sy
@@ -106,6 +114,7 @@ def test_vectorize(expr: vector.Vector, params: Any, result: Symbol):
 
 def test_vectorize_non_default_varname():
     assert vector.vectorize(x + 2 * y, ("x", "y"), varname="v") == v[0] + 2 * v[1]
+
 
 def test_vectorize_many():
     eqs = [

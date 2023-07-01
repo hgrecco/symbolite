@@ -14,9 +14,10 @@ import dataclasses
 from typing import Any
 
 from ..core import Unsupported
-from .symbol import Symbol, BaseFunction
+from .symbol import BaseFunction, Symbol
 
 NumberT = int | float | complex
+
 
 @dataclasses.dataclass(frozen=True)
 class Scalar(Symbol):
@@ -28,23 +29,23 @@ class Scalar(Symbol):
     def __getattr__(self, key: Any):
         return Unsupported
 
+
 @dataclasses.dataclass(frozen=True)
 class ScalarUnaryFunction(BaseFunction):
-
     namespace: str = "scalar"
     arity: int = 1
 
     def __call__(self, arg1: Scalar | NumberT) -> Scalar:
-        return super()._call(arg1) # type: ignore
+        return super()._call(arg1)  # type: ignore
+
 
 @dataclasses.dataclass(frozen=True)
 class ScalarBinaryFunction(BaseFunction):
-
     namespace: str = "scalar"
     arity: int = 2
 
     def __call__(self, arg1: Scalar | NumberT, arg2: Scalar | NumberT) -> Scalar:
-        return super()._call(arg1, arg2) # type: ignore
+        return super()._call(arg1, arg2)  # type: ignore
 
 
 # "gcd": None,  # 1 to ---

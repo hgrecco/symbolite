@@ -12,15 +12,14 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import  Any,Iterable, overload
-
-from symbolite.abstract.symbol import Symbol, BaseFunction
+from typing import Any, Iterable, overload
 
 from ..core import Unsupported
-from .scalar import Scalar, NumberT
+from .scalar import NumberT, Scalar
 from .symbol import BaseFunction, Symbol
 
 VectorT = Iterable[NumberT]
+
 
 @dataclasses.dataclass(frozen=True)
 class Vector(Symbol):
@@ -35,12 +34,11 @@ class Vector(Symbol):
 
 @dataclasses.dataclass(frozen=True)
 class CumulativeFunction(BaseFunction):
-
     namespace: str = "vector"
     arity: int = 1
 
     def __call__(self, arg1: Vector | VectorT) -> Scalar:
-        return super()._call(arg1) # type: ignore
+        return super()._call(arg1)  # type: ignore
 
 
 sum = CumulativeFunction("sum", namespace="vector")
@@ -63,7 +61,7 @@ def vectorize(
     varname: str = "vec",
 ) -> tuple[Symbol, ...]:
     ...
-    
+
 
 def vectorize(
     expr: Symbol | Iterable[Symbol],
@@ -98,14 +96,22 @@ def vectorize(
 
 
 @overload
-def auto_vectorize(expr: Symbol, varname: str = "vec") -> tuple[tuple[str, ...], Symbol]:
+def auto_vectorize(
+    expr: Symbol, varname: str = "vec"
+) -> tuple[tuple[str, ...], Symbol]:
     ...
+
 
 @overload
-def auto_vectorize(expr: Iterable[Symbol], varname: str = "vec") -> tuple[tuple[str, ...], tuple[Symbol, ...]]:
+def auto_vectorize(
+    expr: Iterable[Symbol], varname: str = "vec"
+) -> tuple[tuple[str, ...], tuple[Symbol, ...]]:
     ...
 
-def auto_vectorize(expr: Symbol | Iterable[Symbol], varname: str = "vec") -> tuple[tuple[str, ...], Symbol | tuple[Symbol, ...]]:
+
+def auto_vectorize(
+    expr: Symbol | Iterable[Symbol], varname: str = "vec"
+) -> tuple[tuple[str, ...], Symbol | tuple[Symbol, ...]]:
     """Vectorize expression by replacing all test_scalar symbols
     by an array at a given indices. Symbols are ordered into
     the array alphabetically.

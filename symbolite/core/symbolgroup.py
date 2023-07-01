@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import dataclasses
 import types
+from typing import Any, Iterable
 
-from typing import Iterable, Any
 from ..abstract.symbol import Symbol
 
 

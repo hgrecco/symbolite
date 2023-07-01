@@ -1,9 +1,10 @@
 import pytest
 
-from symbolite import scalar, Scalar
+from symbolite import Scalar, scalar
 from symbolite.core import as_string
 
 x, y, z = map(scalar.Scalar, "x y z".split())
+
 
 @pytest.mark.parametrize(
     "expr,result",

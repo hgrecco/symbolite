@@ -1,9 +1,9 @@
 import inspect
-
-import pytest
 import types
 
-from symbolite import scalar, Symbol
+import pytest
+
+from symbolite import Symbol, scalar
 from symbolite.core import as_function
 from symbolite.impl import get_all_implementations
 
@@ -13,15 +13,16 @@ x, y, z = map(scalar.Scalar, "x y z".split())
 
 xsy = Symbol("xsy")
 
+
 @pytest.mark.mypy_testing
 def test_typing():
-    reveal_type(x + y) # R: symbolite.abstract.scalar.Scalar
-    reveal_type(2 + y) # R: symbolite.abstract.scalar.Scalar
-    reveal_type(x + 2) # R: symbolite.abstract.scalar.Scalar
-    # reveal_type(x + xsy) # R: symbolite.abstract.symbol.Symbol
-    # reveal_type(xsy + x) # R: symbolite.abstract.symbol.Symbol
-    reveal_type(scalar.cos(x)) # R: symbolite.abstract.scalar.Scalar
-    # reveal_type(scalar.cos(xsy)) # R: symbolite.abstract.scalar.Scalar
+    reveal_type(x + y)  # R: symbolite.abstract.scalar.Scalar # noqa: F821
+    reveal_type(2 + y)  # R: symbolite.abstract.scalar.Scalar # noqa: F821
+    reveal_type(x + 2)  # R: symbolite.abstract.scalar.Scalar # noqa: F821
+    # reveal_type(x + xsy) # R: symbolite.abstract.symbol.Symbol # noqa: F821
+    # reveal_type(xsy + x) # R: symbolite.abstract.symbol.Symbol # noqa: F821
+    reveal_type(scalar.cos(x))  # R: symbolite.abstract.scalar.Scalar # noqa: F821
+    # reveal_type(scalar.cos(xsy)) # R: symbolite.abstract.scalar.Scalar # noqa: F821
 
 
 @pytest.mark.parametrize(

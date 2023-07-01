@@ -1,6 +1,6 @@
 import math as pymath
-from operator import attrgetter
 import types
+from operator import attrgetter
 from typing import Any
 
 import pytest
@@ -76,7 +76,7 @@ _values = {
 _all = {**_functions, **_values}
 
 
-def almost_equal(x: Any, y: Any, threshold: float=0.0001):
+def almost_equal(x: Any, y: Any, threshold: float = 0.0001):
     if isinstance(x, bool):
         assert x == y
     elif isinstance(x, tuple):

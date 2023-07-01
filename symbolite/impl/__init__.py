@@ -39,9 +39,9 @@ def get_all_implementations() -> dict[str, types.ModuleType]:
         pass
 
     try:
-        from . import libstd
+        from . import libsympy
 
-        out["libstd"] = libstd
+        out["libsympy"] = libsympy
     except ImportError:
         pass
 

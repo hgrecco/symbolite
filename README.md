@@ -51,7 +51,7 @@ You can also import it with the right name and it will be found
 11
 ```
 
-In addition to the `Symbol` class, there is also a `Scalar` and `Vector` classes 
+In addition to the `Symbol` class, there is also a `Scalar` and `Vector` classes
 to represent integer, floats or complex numbers, and an array of those.
 
 ```python

@@ -4,8 +4,6 @@ from symbolite import Function, Symbol
 from symbolite.abstract.symbol import Expression
 from symbolite.impl import find_module_in_stack
 
-from typing_extensions import reveal_type
-
 x, y, z = map(Symbol, "x y z".split())
 
 F = Function("F", arity=1)
@@ -13,10 +11,11 @@ G = Function("G", arity=1)
 
 
 @pytest.mark.mypy_testing
+# noqa: F821
 def test_typing():
-    reveal_type(x + y) # R: symbolite.abstract.symbol.Symbol
-    reveal_type(2 + y) # R: symbolite.abstract.symbol.Symbol
-    reveal_type(x + 2) # R: symbolite.abstract.symbol.Symbol
+    reveal_type(x + y)  # R: symbolite.abstract.symbol.Symbol # noqa: F821
+    reveal_type(2 + y)  # R: symbolite.abstract.symbol.Symbol # noqa: F821
+    reveal_type(x + 2)  # R: symbolite.abstract.symbol.Symbol # noqa: F821
 
 
 def test_forward_reverse():

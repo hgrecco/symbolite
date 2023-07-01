@@ -1,13 +1,8 @@
 ![Package](https://img.shields.io/pypi/v/symbolite?label=symbolite)
-
 ![CodeStyle](https://img.shields.io/badge/code%20style-black-000000.svg)
-
 ![License](https://img.shields.io/pypi/l/symbolite?label=license)
-
 ![PyVersion](https://img.shields.io/pypi/pyversions/symbolite?label=python)
-
 [![CI](https://github.com/hgrecco/symbolite/actions/workflows/ci.yml/badge.svg)](https://github.com/hgrecco/symbolite/actions/workflows/ci.yml)
-
 [![Lint](https://github.com/hgrecco/symbolite/actions/workflows/lint.yml/badge.svg)](https://github.com/hgrecco/symbolite/actions/workflows/lint.yml)
 
 # symbolite: a minimalistic symbolic python package

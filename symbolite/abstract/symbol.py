@@ -538,7 +538,7 @@ ge = BinaryFunction("ge", "symbol", fmt="({} >= {})")
 getitem = BinaryFunction("getitem", "symbol", fmt="{}[{}]")
 
 # Emulating attribute
-symgetattr = BinaryFunction("symgetattr", "symbol", fmt="{}[{}]")
+symgetattr = BinaryFunction("symgetattr", "symbol", fmt="{}.{}")
 
 # Emulating numeric types
 add = BinaryFunction("add", "symbol", fmt="({} + {})")

@@ -70,10 +70,10 @@ rand = _rev(op.and_)
 rxor = _rev(op.xor)
 ror = _rev(op.or_)
 
-# Reflective versions
-neg = _rev(op.neg)
-pos = _rev(op.pos)
-invert = _rev(op.inv)
+# Unary operators
+neg = op.neg
+pos = op.pos
+invert = op.inv
 
 
 del _rev, op, _pow

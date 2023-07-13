@@ -24,9 +24,9 @@ jobs:
       - name: Install package
         run: pip install --pre .[test]
 
-      - name: Install numpy and sympy (but only for 1 python version)
+      - name: Install implementations (but only for 1 python version)
         # if: ${{ matrix.python-version == '3.11' }}
-        run: pip install sympy numpy
+        run: pip install sympy numpy jax
 
       - name: Test with pytest
         run: pytest

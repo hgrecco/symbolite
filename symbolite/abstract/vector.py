@@ -47,6 +47,15 @@ prod = CumulativeFunction("prod", namespace="vector")
 
 @overload
 def vectorize(
+    expr: NumberT,
+    symbol_names: tuple[str, ...] | dict[str, int],
+    varname: str = "vec",
+) -> NumberT:
+    ...
+
+
+@overload
+def vectorize(
     expr: Symbol,
     symbol_names: tuple[str, ...] | dict[str, int],
     varname: str = "vec",
@@ -56,18 +65,18 @@ def vectorize(
 
 @overload
 def vectorize(
-    expr: Iterable[Symbol],
+    expr: Iterable[NumberT | Symbol],
     symbol_names: tuple[str, ...] | dict[str, int],
     varname: str = "vec",
-) -> tuple[Symbol, ...]:
+) -> tuple[NumberT | Symbol, ...]:
     ...
 
 
 def vectorize(
-    expr: Symbol | Iterable[Symbol],
+    expr: NumberT | Symbol | Iterable[NumberT | Symbol],
     symbol_names: tuple[str, ...] | dict[str, int],
     varname: str = "vec",
-) -> Symbol | tuple[Symbol, ...]:
+) -> NumberT | Symbol | tuple[NumberT | Symbol, ...]:
     """Vectorize expression by replacing test_scalar symbols
     by an array at a given indices.
 
@@ -81,6 +90,9 @@ def vectorize(
     varname
         name of the array variable
     """
+    if isinstance(expr, NumberT):
+        return expr
+
     if not isinstance(expr, Symbol):
         return tuple(vectorize(symbol, symbol_names, varname) for symbol in expr)
 
@@ -93,6 +105,13 @@ def vectorize(
 
     reps = {Scalar(name): arr[ndx] for ndx, name in it}
     return expr.subs(reps)
+
+
+@overload
+def auto_vectorize(
+    expr: NumberT, varname: str = "vec"
+) -> tuple[tuple[str, ...], Symbol]:
+    ...
 
 
 @overload
@@ -110,8 +129,8 @@ def auto_vectorize(
 
 
 def auto_vectorize(
-    expr: Symbol | Iterable[Symbol], varname: str = "vec"
-) -> tuple[tuple[str, ...], Symbol | tuple[Symbol, ...]]:
+    expr: NumberT | Symbol | Iterable[Symbol], varname: str = "vec"
+) -> tuple[tuple[str, ...], NumberT | Symbol | tuple[NumberT | Symbol, ...]]:
     """Vectorize expression by replacing all test_scalar symbols
     by an array at a given indices. Symbols are ordered into
     the array alphabetically.
@@ -129,6 +148,9 @@ def auto_vectorize(
     SymbolicExpression
         vectorized expression.
     """
+    if isinstance(expr, NumberT):
+        return tuple(), expr
+
     if not isinstance(expr, Symbol):
         expr = tuple(expr)
         out = set[str]()

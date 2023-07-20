@@ -468,7 +468,10 @@ class Expression:
         args = tuple(substitute(arg, mapper) for arg in self.args)
         kwargs = {k: substitute(arg, mapper) for k, arg in self.kwargs_items}
 
-        return func(*args, **kwargs)
+        try:
+            return func(*args, **kwargs)
+        except Exception as ex:
+            raise Exception(f"While evaluating {func}(*{args}, **{kwargs}): {ex}")
 
     def subs_by_name(self, **mapper: Any) -> Self:
         """Replace symbols, functions, values, etc by others.
@@ -508,7 +511,10 @@ class Expression:
         args = tuple(evaluate(arg, libsl) for arg in self.args)
         kwargs = {k: evaluate(arg, libsl) for k, arg in self.kwargs_items}
 
-        return func(*args, **kwargs)
+        try:
+            return func(*args, **kwargs)
+        except Exception as ex:
+            raise Exception(f"While evaluating {func}(*{args}, **{kwargs}): {ex}")
 
     def symbol_names(self, namespace: str | None = "") -> set[str]:
         """Return a set of symbol names (with full namespace indication).

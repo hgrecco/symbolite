@@ -55,6 +55,25 @@ def as_function(
         f"""def {function_name}({", ".join(params)}): return {as_string(expr)}"""
     )
 
+    lm = compile(function_def, libsl)
+
+    return lm[function_name]
+
+
+def compile(
+    code: str,
+    libsl: types.ModuleType | None = None,
+) -> dict[str, Any]:
+    """Compile the code and return the local dictionary.
+
+    Parameters
+    ----------
+    expr
+        symbolic expression.
+    libsl
+        implementation module.
+    """
+
     if libsl is None:
         libsl = find_module_in_stack()
     if libsl is None:
@@ -65,7 +84,7 @@ def as_function(
 
     lm: dict[str, Any] = {}
     exec(
-        function_def,
+        code,
         {
             "symbol": libsl.symbol,
             "scalar": libsl.scalar,
@@ -74,7 +93,7 @@ def as_function(
         },
         lm,
     )
-    return lm[function_name]
+    return lm
 
 
 def inspect(expr: Any) -> dict[Any, int]:

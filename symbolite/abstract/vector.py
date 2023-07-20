@@ -50,6 +50,7 @@ def vectorize(
     expr: NumberT,
     symbol_names: tuple[str, ...] | dict[str, int],
     varname: str = "vec",
+    scalar_type: type[Scalar] = Scalar,
 ) -> NumberT:
     ...
 
@@ -59,6 +60,7 @@ def vectorize(
     expr: Symbol,
     symbol_names: tuple[str, ...] | dict[str, int],
     varname: str = "vec",
+    scalar_type: type[Scalar] = Scalar,
 ) -> Symbol:
     ...
 
@@ -68,6 +70,7 @@ def vectorize(
     expr: Iterable[NumberT | Symbol],
     symbol_names: tuple[str, ...] | dict[str, int],
     varname: str = "vec",
+    scalar_type: type[Scalar] = Scalar,
 ) -> tuple[NumberT | Symbol, ...]:
     ...
 
@@ -76,6 +79,7 @@ def vectorize(
     expr: NumberT | Symbol | Iterable[NumberT | Symbol],
     symbol_names: tuple[str, ...] | dict[str, int],
     varname: str = "vec",
+    scalar_type: type[Scalar] = Scalar,
 ) -> NumberT | Symbol | tuple[NumberT | Symbol, ...]:
     """Vectorize expression by replacing test_scalar symbols
     by an array at a given indices.
@@ -103,33 +107,41 @@ def vectorize(
 
     arr = Vector(varname)
 
-    reps = {Scalar(name): arr[ndx] for ndx, name in it}
+    reps = {scalar_type(name): arr[ndx] for ndx, name in it}
     return expr.subs(reps)
 
 
 @overload
 def auto_vectorize(
-    expr: NumberT, varname: str = "vec"
+    expr: NumberT,
+    varname: str = "vec",
+    scalar_type: type[Scalar] = Scalar,
 ) -> tuple[tuple[str, ...], Symbol]:
     ...
 
 
 @overload
 def auto_vectorize(
-    expr: Symbol, varname: str = "vec"
+    expr: Symbol,
+    varname: str = "vec",
+    scalar_type: type[Scalar] = Scalar,
 ) -> tuple[tuple[str, ...], Symbol]:
     ...
 
 
 @overload
 def auto_vectorize(
-    expr: Iterable[Symbol], varname: str = "vec"
+    expr: Iterable[Symbol],
+    varname: str = "vec",
+    scalar_type: type[Scalar] = Scalar,
 ) -> tuple[tuple[str, ...], tuple[Symbol, ...]]:
     ...
 
 
 def auto_vectorize(
-    expr: NumberT | Symbol | Iterable[Symbol], varname: str = "vec"
+    expr: NumberT | Symbol | Iterable[Symbol],
+    varname: str = "vec",
+    scalar_type: type[Scalar] = Scalar,
 ) -> tuple[tuple[str, ...], NumberT | Symbol | tuple[NumberT | Symbol, ...]]:
     """Vectorize expression by replacing all test_scalar symbols
     by an array at a given indices. Symbols are ordered into
@@ -157,7 +169,7 @@ def auto_vectorize(
         for symbol in expr:
             out.update(symbol.symbol_names(""))
         symbol_names = tuple(sorted(out))
-        return symbol_names, vectorize(expr, symbol_names, varname)
+        return symbol_names, vectorize(expr, symbol_names, varname, scalar_type)
     else:
         symbol_names = tuple(sorted(expr.symbol_names("")))
-        return symbol_names, vectorize(expr, symbol_names, varname)
+        return symbol_names, vectorize(expr, symbol_names, varname, scalar_type)

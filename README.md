@@ -101,7 +101,10 @@ Again, this is a symbolic expression until evaluated.
 18.0
 ```
 
-Two other implementations are provided: NumPy and SymPy:
+Three other implementations are provided:
+[NumPy](https://numpy.org/),
+[SymPy](https://www.sympy.org),
+[JAX](https://jax.readthedocs.io).
 
 ```python
 >>> from symbolite.impl import libnumpy

@@ -1,9 +1,9 @@
 """
-    symbolite.impl.libnumpy
-    ~~~~~~~~~~~~~~~~~~~~~~~
+    symbolite.impl.libjax
+    ~~~~~~~~~~~~~~~~~~~~~
 
     Translate symbolite
-    into values and functions defined in NumPy.
+    into values and functions defined in JAX.
 
     :copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.

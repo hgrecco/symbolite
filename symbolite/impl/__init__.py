@@ -1,5 +1,7 @@
+import importlib
 import inspect
 import types
+from pathlib import Path
 
 
 def find_module_in_stack(name: str = "libsl") -> types.ModuleType | None:
@@ -27,22 +29,18 @@ def find_module_in_stack(name: str = "libsl") -> types.ModuleType | None:
 
 def get_all_implementations() -> dict[str, types.ModuleType]:
     out = {}
-    from . import libstd
 
-    out["libstd"] = libstd
+    path = Path(__file__)
+    for p in path.parent.iterdir():
+        name = p.stem
+        if name.startswith("_"):
+            continue
 
-    try:
-        from . import libnumpy
-
-        out["libnumpy"] = libnumpy
-    except ImportError:
-        pass
-
-    try:
-        from . import libsympy
-
-        out["libsympy"] = libsympy
-    except ImportError:
-        pass
+        try:
+            module = importlib.import_module(f".{name}", package=__package__)
+        except ImportError:
+            pass
+        else:
+            out[name] = module
 
     return out

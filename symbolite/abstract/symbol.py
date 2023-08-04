@@ -184,55 +184,55 @@ class Symbol(Named):
     # Reflected arithmetic operators
     def __radd__(self, other: Any) -> Self:
         """Implements reflected addition."""
-        return radd(self, other)
+        return add(other, self)
 
     def __rsub__(self, other: Any) -> Self:
         """Implements reflected subtraction."""
-        return rsub(self, other)
+        return sub(other, self)
 
     def __rmul__(self, other: Any) -> Self:
         """Implements reflected multiplication."""
-        return rmul(self, other)
+        return mul(other, self)
 
     def __rmatmul__(self, other: Any) -> Self:
         """Implements reflected multiplication."""
-        return rmatmul(self, other)
+        return matmul(other, self)
 
     def __rtruediv__(self, other: Any) -> Self:
         """Implements reflected true division."""
-        return rtruediv(self, other)
+        return truediv(other, self)
 
     def __rfloordiv__(self, other: Any) -> Self:
         """Implements reflected integer division using the // operator."""
-        return rfloordiv(self, other)
+        return floordiv(other, self)
 
     def __rmod__(self, other: Any) -> Self:
         """Implements reflected modulo using the % operator."""
-        return rmod(self, other)
+        return mod(other, self)
 
     def __rpow__(self, other: Any) -> Self:
         """Implements behavior for reflected exponents using the ** operator."""
-        return rpow(self, other)
+        return pow(other, self)
 
     def __rlshift__(self, other: Any) -> Self:
         """Implements reflected left bitwise shift using the << operator."""
-        return rlshift(self, other)
+        return lshift(other, self)
 
     def __rrshift__(self, other: Any) -> Self:
         """Implements reflected right bitwise shift using the >> operator."""
-        return rrshift(self, other)
+        return rshift(other, self)
 
     def __rand__(self, other: Any) -> Self:
         """Implements reflected bitwise and using the & operator."""
-        return rand(self, other)
+        return and_(other, self)
 
     def __ror__(self, other: Any) -> Self:
         """Implements reflected bitwise or using the | operator."""
-        return ror(self, other)
+        return or_(other, self)
 
     def __rxor__(self, other: Any) -> Self:
         """Implements reflected bitwise xor using the ^ operator."""
-        return rxor(self, other)
+        return xor(other, self)
 
     # Unary operators and functions
     def __neg__(self) -> Self:

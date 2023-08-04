@@ -26,8 +26,8 @@ def test_forward_reverse():
 
     expr = 1 + x
     assert isinstance(expr.expression, Expression)
-    assert expr.expression.func.name == "radd"
-    assert expr.expression.args == (x, 1)
+    assert expr.expression.func.name == "add"
+    assert expr.expression.args == (1, x)
 
 
 @pytest.mark.parametrize(

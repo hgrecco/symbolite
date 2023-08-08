@@ -12,7 +12,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Iterable, overload
+from typing import Any, Iterable, Mapping, Sequence, overload
 
 from ..core import Unsupported
 from .scalar import NumberT, Scalar
@@ -58,7 +58,7 @@ def vectorize(
 @overload
 def vectorize(
     expr: Symbol,
-    symbol_names: tuple[str, ...] | dict[str, int],
+    symbol_names: Sequence[str] | Mapping[str, int],
     varname: str = "vec",
     scalar_type: type[Scalar] = Scalar,
 ) -> Symbol:
@@ -68,7 +68,7 @@ def vectorize(
 @overload
 def vectorize(
     expr: Iterable[NumberT | Symbol],
-    symbol_names: tuple[str, ...] | dict[str, int],
+    symbol_names: Sequence[str] | Mapping[str, int],
     varname: str = "vec",
     scalar_type: type[Scalar] = Scalar,
 ) -> tuple[NumberT | Symbol, ...]:
@@ -77,7 +77,7 @@ def vectorize(
 
 def vectorize(
     expr: NumberT | Symbol | Iterable[NumberT | Symbol],
-    symbol_names: tuple[str, ...] | dict[str, int],
+    symbol_names: Sequence[str] | Mapping[str, int],
     varname: str = "vec",
     scalar_type: type[Scalar] = Scalar,
 ) -> NumberT | Symbol | tuple[NumberT | Symbol, ...]:

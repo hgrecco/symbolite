@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import types
-from typing import Any, Iterable
+from typing import Any, Iterable, Mapping
 
 from ..abstract.symbol import Symbol
 
@@ -12,7 +12,7 @@ class SymbolicList(list[Symbol]):
     def from_iterable(cls, it: Iterable[Symbol]):
         return cls(it)
 
-    def subs(self, *mappers: dict[Any, Any]) -> SymbolicList:
+    def subs(self, *mappers: Mapping[Any, Any]) -> SymbolicList:
         """Replace symbols, functions, values, etc by others.
 
         If multiple mappers are provided,

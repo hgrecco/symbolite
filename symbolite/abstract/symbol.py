@@ -14,7 +14,7 @@ import dataclasses
 import functools
 import types
 from operator import attrgetter
-from typing import Any, Callable, Generator
+from typing import Any, Callable, Generator, Mapping
 
 from typing_extensions import Self
 
@@ -261,7 +261,7 @@ class Symbol(Named):
         else:
             yield from self.expression.yield_named(include_anonymous)
 
-    def subs(self, mapper: dict[Any, Any]) -> Self:
+    def subs(self, mapper: Mapping[Any, Any]) -> Self:
         """Replace symbols, functions, values, etc by others.
 
         If multiple mappers are provided,
@@ -450,7 +450,7 @@ class Expression:
             if isinstance(v, Symbol):
                 yield from v.yield_named(include_anonymous)
 
-    def subs(self, mapper: dict[Any, Any]) -> Self:
+    def subs(self, mapper: Mapping[Any, Any]) -> Self:
         """Replace symbols, functions, values, etc by others.
 
         If multiple mappers are provided,

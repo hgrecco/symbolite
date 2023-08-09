@@ -11,7 +11,7 @@
 import collections
 import types
 import warnings
-from typing import Any, Callable
+from typing import Any, Callable, Mapping, Sequence
 
 from ..impl import find_module_in_stack
 
@@ -34,7 +34,7 @@ def as_string(expr: Any) -> str:
 def as_function(
     expr: Any,
     function_name: str,
-    params: tuple[str, ...],
+    params: Sequence[str],
     libsl: types.ModuleType | None = None,
 ) -> Callable[..., Any]:
     """Converts the expression to a callable function.
@@ -133,7 +133,7 @@ def evaluate(expr: Any, libsl: types.ModuleType | None = None) -> Any:
     return expr
 
 
-def substitute(expr: Any, replacements: dict[Any, Any]) -> Any:
+def substitute(expr: Any, replacements: Mapping[Any, Any]) -> Any:
     """Replace symbols, functions, values, etc by others.
 
     Parameters

@@ -47,7 +47,7 @@ prod = CumulativeFunction("prod", namespace="vector")
 @overload
 def vectorize(
     expr: NumberT,
-    symbol_names: tuple[str, ...] | dict[str, int],
+    symbol_names: Sequence[str] | Mapping[str, int],
     varname: str = "vec",
     scalar_type: type[Scalar] = Scalar,
 ) -> NumberT:

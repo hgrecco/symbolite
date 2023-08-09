@@ -27,7 +27,7 @@ class Scalar(Symbol):
         return Unsupported
 
     def __getattr__(self, key: Any):
-        return Unsupported
+        raise AttributeError(key)
 
 
 @dataclasses.dataclass(frozen=True)

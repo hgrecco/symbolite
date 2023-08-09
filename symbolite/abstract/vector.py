@@ -14,7 +14,6 @@ from __future__ import annotations
 import dataclasses
 from typing import Any, Iterable, Mapping, Sequence, overload
 
-from ..core import Unsupported
 from .scalar import NumberT, Scalar
 from .symbol import BaseFunction, Symbol
 
@@ -29,7 +28,7 @@ class Vector(Symbol):
         return super().__getitem__(key)
 
     def __getattr__(self, key: Any):
-        return Unsupported
+        raise AttributeError(key)
 
 
 @dataclasses.dataclass(frozen=True)

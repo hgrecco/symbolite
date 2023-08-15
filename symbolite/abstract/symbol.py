@@ -471,7 +471,11 @@ class Expression:
         try:
             return func(*args, **kwargs)
         except Exception as ex:
-            raise Exception(f"While evaluating {func}(*{args}, **{kwargs}): {ex}")
+            try:
+                ex.add_note(f"While evaluating {func}(*{args}, **{kwargs}): {ex}")
+            except AttributeError:
+                pass
+            raise ex
 
     def subs_by_name(self, **mapper: Any) -> Self:
         """Replace symbols, functions, values, etc by others.
@@ -491,7 +495,14 @@ class Expression:
         args = tuple(substitute_by_name(arg, **mapper) for arg in self.args)
         kwargs = {k: substitute_by_name(arg, **mapper) for k, arg in self.kwargs_items}
 
-        return func(*args, **kwargs)
+        try:
+            return func(*args, **kwargs)
+        except Exception as ex:
+            try:
+                ex.add_note(f"While evaluating {func}(*{args}, **{kwargs}): {ex}")
+            except AttributeError:
+                pass
+            raise ex
 
     def eval(self, libsl: types.ModuleType | None = None) -> Any:
         """Evaluate expression.
@@ -514,7 +525,11 @@ class Expression:
         try:
             return func(*args, **kwargs)
         except Exception as ex:
-            raise Exception(f"While evaluating {func}(*{args}, **{kwargs}): {ex}")
+            try:
+                ex.add_note(f"While evaluating {func}(*{args}, **{kwargs}): {ex}")
+            except AttributeError:
+                pass
+            raise ex
 
     def symbol_names(self, namespace: str | None = "") -> set[str]:
         """Return a set of symbol names (with full namespace indication).

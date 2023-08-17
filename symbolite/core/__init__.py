@@ -148,7 +148,7 @@ def substitute(expr: Any, replacements: Mapping[Any, Any]) -> Any:
     return replacements.get(expr, expr)
 
 
-def substitute_by_name(expr: Any, **replacements: Any):
+def substitute_by_name(expr: Any, **replacements: Any) -> Any:
     """Replace Symbols by values or objects, matching by name.
 
     Parameters

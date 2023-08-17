@@ -145,7 +145,7 @@ def substitute(expr: Any, replacements: Mapping[Any, Any]) -> Any:
     """
     if hasattr(expr, "subs"):
         return expr.subs(replacements)
-    return expr
+    return replacements.get(expr, expr)
 
 
 def substitute_by_name(expr: Any, **replacements: Any):

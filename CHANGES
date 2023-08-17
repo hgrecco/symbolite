@@ -1,6 +1,15 @@
 Symbolite Changelog
 ===================
 
+0.4.1 (2023-08-17)
+------------------
+
+- Add option to substitute and eval in multiple
+  symbols respecting the dependencies.
+- Remove reverse operators replacing with reverse arguments.
+- Do not change Exception type (and use add_note)
+
+
 0.4 (2023-08-01)
 ----------------
 

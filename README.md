@@ -19,7 +19,7 @@ will normally do in Python.
 >>> y = Symbol("y")
 >>> expr1 = x + 3 * y
 >>> print(expr1)
-(x + (3 * y))
+x + 3 * y
 ```
 
 An expression is just an unnamed Symbol.
@@ -28,7 +28,7 @@ You can easily replace the symbols by the desired value.
 ```python
 >>> expr2 = expr1.subs_by_name(x=5, y=2)
 >>> print(expr2)
-(5 + (3 * 2))
+5 + 3 * 2
 ```
 
 The output is still a symbolic expression, which you can evaluate:
@@ -68,9 +68,9 @@ to represent integer, floats or complex numbers, and an array of those.
 >>> v = Vector("v")
 >>> expr1 = x + 3 * y
 >>> print(expr1)
-(x + (3 * y))
+x + 3 * y
 >>> print(2 * v)
-(2 * v)
+2 * v
 ```
 
 Mathematical functions that operate on scalars are available in the `scalar` module.
@@ -79,7 +79,7 @@ Mathematical functions that operate on scalars are available in the `scalar` mod
 >>> from symbolite import scalar
 >>> expr3 = 3. * scalar.cos(0.5)
 >>> print(expr3)
-(3.0 * scalar.cos(0.5))
+3.0 * scalar.cos(0.5)
 ```
 
 Mathematical functions that operate on vectors are available in the `vector` module.
@@ -88,7 +88,7 @@ Mathematical functions that operate on vectors are available in the `vector` mod
 >>> from symbolite import vector
 >>> expr4 = 3. * vector.sum((1, 2, 3))
 >>> print(expr4)
-(3.0 * vector.sum((1, 2, 3)))
+3.0 * vector.sum((1, 2, 3))
 ```
 
 Notice that functions are named according to the python math module.

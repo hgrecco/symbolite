@@ -381,10 +381,6 @@ class BaseFunction(Named):
             raise ValueError(
                 "If arity is given, keyword arguments should not be provided."
             )
-        if len(args) != self.arity:
-            raise ValueError(
-                f"Invalid number of arguments ({len(args)}), expected {self.arity}."
-            )
         return self.call(self, args)
 
     def format(self, *args: Any, **kwargs: Any) -> str:
@@ -437,13 +433,29 @@ class BinaryFunction(BaseFunction):
     arity: int = 2
     precedence: int
 
+    @property
+    def call(self) -> type[Expression]:
+        return ReduceExpression
+
     def format(self, *args: Any, **kwargs: Any) -> str:
-        x, y = args
-        x = _add_parenthesis(self, x, right=False)
-        y = _add_parenthesis(self, y, right=True)
-        return super().format(x, y)
+        if len(args) == self.arity:
+            x, y = args
+            x = _add_parenthesis(self, x, right=False)
+            y = _add_parenthesis(self, y, right=True)
+            return super().format(x, y)
+        else:
+            sep = super().format("", "")
+            str_args = [_add_parenthesis(self, args[0], right=False)]
+            str_args.extend(_add_parenthesis(self, x, right=True) for x in args[1:])
+            return sep.join(str_args)
 
     def __call__(self, arg1: Symbol, arg2: Symbol) -> Symbol:
+        if (
+            isinstance(arg1, Symbol)
+            and arg1.expression is not None
+            and arg1.expression.func is self
+        ):
+            return self._call(*arg1.expression.args, arg2)
         return self._call(arg1, arg2)
 
 
@@ -573,6 +585,53 @@ class Expression:
         """
         ff = filter_namespace(namespace)
         return set(map(str, filter(ff, self.yield_named(False))))
+
+
+class ReduceExpression(Expression):
+    def subs(self, mapper: Mapping[Any, Any]) -> Self:
+        func = mapper.get(self.func, self.func)
+        args = tuple(substitute(arg, mapper) for arg in self.args)
+        if len(self.kwargs_items) > 0:
+            raise NotImplementedError
+
+        try:
+            return functools.reduce(func, args)
+        except Exception as ex:
+            try:
+                ex.add_note(f"While evaluating reduce({func}, {args}): {ex}")
+            except AttributeError:
+                pass
+            raise ex
+
+    def subs_by_name(self, **mapper: Any) -> Self:
+        func = mapper.get(str(self.func), self.func)
+        args = tuple(substitute_by_name(arg, **mapper) for arg in self.args)
+        if len(self.kwargs_items) > 0:
+            raise NotImplementedError
+
+        try:
+            return functools.reduce(func, args)
+        except Exception as ex:
+            try:
+                ex.add_note(f"While evaluating reduce({func}, {args}): {ex}")
+            except AttributeError:
+                pass
+            raise ex
+
+    def eval(self, libsl: types.ModuleType | None = None) -> Any:
+        func = attrgetter(str(self.func))(libsl)
+        args = tuple(evaluate(arg, libsl) for arg in self.args)
+        if len(self.kwargs_items) > 0:
+            raise NotImplementedError
+
+        try:
+            return functools.reduce(func, args)
+        except Exception as ex:
+            try:
+                ex.add_note(f"While evaluating reduce({func}, {args}): {ex}")
+            except AttributeError:
+                pass
+            raise ex
 
 
 # Comparison methods (not operator)

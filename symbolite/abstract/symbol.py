@@ -577,22 +577,7 @@ and_ = BinaryFunction("and_", "symbol", fmt="({} & {})")
 xor = BinaryFunction("xor", "symbol", fmt="({} ^ {})")
 or_ = BinaryFunction("or_", "symbol", fmt="({} | {})")
 
-# Reflective versions
-radd = BinaryFunction("radd", "symbol", fmt="({1} + {0})")
-rsub = BinaryFunction("rsub", "symbol", fmt="({1} - {0})")
-rmul = BinaryFunction("rmul", "symbol", fmt="({1} * {0})")
-rmatmul = BinaryFunction("rmatmul", "symbol", fmt="({1} @ {0})")
-rtruediv = BinaryFunction("rtruediv", "symbol", fmt="({1} / {0})")
-rfloordiv = BinaryFunction("rfloordiv", "symbol", fmt="({1} // {0})")
-rmod = BinaryFunction("rmod", "symbol", fmt="({1} % {0})")
-rpow = BinaryFunction("pow", "symbol", fmt="({1} ** {0})")
-rlshift = BinaryFunction("rlshift", "symbol", fmt="({1} << {0})")
-rrshift = BinaryFunction("rrshift", "symbol", fmt="({1} >> {0})")
-rand = BinaryFunction("rand", "symbol", fmt="({1} & {0})")
-rxor = BinaryFunction("rxor", "symbol", fmt="({1} ^ {0})")
-ror = BinaryFunction("ror", "symbol", fmt="({1} | {0})")
-
-# Reflective versions
+# Unary operators
 neg = UnaryFunction("neg", "symbol", fmt="(-{})")
 pos = UnaryFunction("pos", "symbol", fmt="(+{})")
 invert = UnaryFunction("invert", "symbol", fmt="(~{})")

@@ -401,9 +401,32 @@ class Function(BaseFunction):
         return self._call(*args, **kwargs)
 
 
+def _add_parenthesis(
+    self: UnaryFunction | BinaryFunction,
+    arg: UnaryFunction | BinaryFunction,
+    *,
+    right: bool,
+) -> str:
+    match arg:
+        case Symbol(
+            expression=Expression(
+                func=UnaryFunction(precedence=p) | BinaryFunction(precedence=p)
+            )
+        ):
+            if p < self.precedence or (right and p <= self.precedence):
+                return f"({arg})"
+    return str(arg)
+
+
 @dataclasses.dataclass(frozen=True)
 class UnaryFunction(BaseFunction):
     arity = 1
+    precedence: int = 0
+
+    def format(self, *args: Any, **kwargs: Any) -> str:
+        (x,) = args
+        x = _add_parenthesis(self, x, right=False)
+        return super().format(x)
 
     def __call__(self, arg1: Symbol) -> Symbol:
         return self._call(arg1)
@@ -412,6 +435,13 @@ class UnaryFunction(BaseFunction):
 @dataclasses.dataclass(frozen=True)
 class BinaryFunction(BaseFunction):
     arity = 2
+    precedence: int = 0
+
+    def format(self, *args: Any, **kwargs: Any) -> str:
+        x, y = args
+        x = _add_parenthesis(self, x, right=False)
+        y = _add_parenthesis(self, y, right=True)
+        return super().format(x, y)
 
     def __call__(self, arg1: Symbol, arg2: Symbol) -> Symbol:
         return self._call(arg1, arg2)
@@ -546,14 +576,14 @@ class Expression:
 
 
 # Comparison methods (not operator)
-eq = BinaryFunction("eq", "symbol", fmt="({} == {})")
-ne = BinaryFunction("ne", "symbol", fmt="({} != {})")
+eq = BinaryFunction("eq", "symbol", fmt="{} == {}")
+ne = BinaryFunction("ne", "symbol", fmt="{} != {}")
 
 # Comparison
-lt = BinaryFunction("lt", "symbol", fmt="({} < {})")
-le = BinaryFunction("le", "symbol", fmt="({} <= {})")
-gt = BinaryFunction("gt", "symbol", fmt="({} > {})")
-ge = BinaryFunction("ge", "symbol", fmt="({} >= {})")
+lt = BinaryFunction("lt", "symbol", fmt="{} < {}")
+le = BinaryFunction("le", "symbol", fmt="{} <= {}")
+gt = BinaryFunction("gt", "symbol", fmt="{} > {}")
+ge = BinaryFunction("ge", "symbol", fmt="{} >= {}")
 
 # Emulating container types
 getitem = BinaryFunction("getitem", "symbol", fmt="{}[{}]")
@@ -562,22 +592,22 @@ getitem = BinaryFunction("getitem", "symbol", fmt="{}[{}]")
 symgetattr = BinaryFunction("symgetattr", "symbol", fmt="{}.{}")
 
 # Emulating numeric types
-add = BinaryFunction("add", "symbol", fmt="({} + {})")
-sub = BinaryFunction("sub", "symbol", fmt="({} - {})")
-mul = BinaryFunction("mul", "symbol", fmt="({} * {})")
-matmul = BinaryFunction("matmul", "symbol", fmt="({} @ {})")
-truediv = BinaryFunction("truediv", "symbol", fmt="({} / {})")
-floordiv = BinaryFunction("floordiv", "symbol", fmt="({} // {})")
-mod = BinaryFunction("mod", "symbol", fmt="({} % {})")
-pow = BinaryFunction("pow", "symbol", fmt="({} ** {})")
+add = BinaryFunction("add", "symbol", precedence=0, fmt="{} + {}")
+sub = BinaryFunction("sub", "symbol", precedence=0, fmt="{} - {}")
+mul = BinaryFunction("mul", "symbol", precedence=1, fmt="{} * {}")
+matmul = BinaryFunction("matmul", "symbol", precedence=1, fmt="{} @ {}")
+truediv = BinaryFunction("truediv", "symbol", precedence=1, fmt="{} / {}")
+floordiv = BinaryFunction("floordiv", "symbol", precedence=1, fmt="{} // {}")
+mod = BinaryFunction("mod", "symbol", precedence=1, fmt="{} % {}")
+pow = BinaryFunction("pow", "symbol", precedence=3, fmt="{} ** {}")
 pow3 = Function("pow3", "symbol", fmt="pow({}, {}, {})", arity=3)
-lshift = BinaryFunction("lshift", "symbol", fmt="({} << {})")
-rshift = BinaryFunction("rshift", "symbol", fmt="({} >> {})")
-and_ = BinaryFunction("and_", "symbol", fmt="({} & {})")
-xor = BinaryFunction("xor", "symbol", fmt="({} ^ {})")
-or_ = BinaryFunction("or_", "symbol", fmt="({} | {})")
+lshift = BinaryFunction("lshift", "symbol", precedence=-1, fmt="{} << {}")
+rshift = BinaryFunction("rshift", "symbol", precedence=-1, fmt="{} >> {}")
+and_ = BinaryFunction("and_", "symbol", precedence=-2, fmt="{} & {}")
+xor = BinaryFunction("xor", "symbol", precedence=-3, fmt="{} ^ {}")
+or_ = BinaryFunction("or_", "symbol", precedence=-4, fmt="{} | {}")
 
 # Unary operators
-neg = UnaryFunction("neg", "symbol", fmt="(-{})")
-pos = UnaryFunction("pos", "symbol", fmt="(+{})")
-invert = UnaryFunction("invert", "symbol", fmt="(~{})")
+neg = UnaryFunction("neg", "symbol", precedence=2, fmt="-{}")
+pos = UnaryFunction("pos", "symbol", precedence=2, fmt="+{}")
+invert = UnaryFunction("invert", "symbol", precedence=2, fmt="~{}")

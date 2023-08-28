@@ -418,10 +418,10 @@ def _add_parenthesis(
     return str(arg)
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class UnaryFunction(BaseFunction):
-    arity = 1
-    precedence: int = 0
+    arity: int = 1
+    precedence: int
 
     def format(self, *args: Any, **kwargs: Any) -> str:
         (x,) = args
@@ -432,10 +432,10 @@ class UnaryFunction(BaseFunction):
         return self._call(arg1)
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class BinaryFunction(BaseFunction):
-    arity = 2
-    precedence: int = 0
+    arity: int = 2
+    precedence: int
 
     def format(self, *args: Any, **kwargs: Any) -> str:
         x, y = args
@@ -576,20 +576,20 @@ class Expression:
 
 
 # Comparison methods (not operator)
-eq = BinaryFunction("eq", "symbol", fmt="{} == {}")
-ne = BinaryFunction("ne", "symbol", fmt="{} != {}")
+eq = BinaryFunction("eq", "symbol", precedence=-5, fmt="{} == {}")
+ne = BinaryFunction("ne", "symbol", precedence=-5, fmt="{} != {}")
 
 # Comparison
-lt = BinaryFunction("lt", "symbol", fmt="{} < {}")
-le = BinaryFunction("le", "symbol", fmt="{} <= {}")
-gt = BinaryFunction("gt", "symbol", fmt="{} > {}")
-ge = BinaryFunction("ge", "symbol", fmt="{} >= {}")
+lt = BinaryFunction("lt", "symbol", precedence=-5, fmt="{} < {}")
+le = BinaryFunction("le", "symbol", precedence=-5, fmt="{} <= {}")
+gt = BinaryFunction("gt", "symbol", precedence=-5, fmt="{} > {}")
+ge = BinaryFunction("ge", "symbol", precedence=-5, fmt="{} >= {}")
 
 # Emulating container types
-getitem = BinaryFunction("getitem", "symbol", fmt="{}[{}]")
+getitem = BinaryFunction("getitem", "symbol", precedence=5, fmt="{}[{}]")
 
 # Emulating attribute
-symgetattr = BinaryFunction("symgetattr", "symbol", fmt="{}.{}")
+symgetattr = BinaryFunction("symgetattr", "symbol", precedence=5, fmt="{}.{}")
 
 # Emulating numeric types
 add = BinaryFunction("add", "symbol", precedence=0, fmt="{} + {}")

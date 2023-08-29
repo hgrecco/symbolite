@@ -9,7 +9,6 @@
 """
 
 
-from collections import defaultdict
 from types import ModuleType
 from typing import Any, Callable, Hashable, Iterator, Mapping, TypeVar
 
@@ -56,23 +55,29 @@ def solve_dependencies(dependencies: Mapping[TH, set[TH]]) -> Iterator[set[TH]]:
         yield t
 
 
+def compute_dependencies(
+    content: Mapping[TH, Any],
+    is_dependency: Callable[[Any], bool],
+):
+    dependencies = {}
+    for k, v in content.items():
+        contents = inspect(v)
+        if contents == {k: 1}:
+            dependencies[k] = set()
+        else:
+            dependencies[k] = set(filter(is_dependency, contents.keys()))
+    return dependencies
+
+
 def substitute_content(
     content: Mapping[TH, Any],
-    is_root: Callable[[Any], bool],
+    *,
     is_dependency: Callable[[Any], bool],
 ) -> dict[TH, scalar.NumberT]:
-    out: dict[TH, Any] = {}
-
-    dependencies = defaultdict[TH, set[Any]](set)
-    for k, v in content.items():
-        if is_root(v):
-            out[k] = v
-        else:
-            for el in filter(is_dependency, inspect(v).keys()):
-                dependencies[k].add(el)
-
+    dependencies = compute_dependencies(content, is_dependency)
     layers = solve_dependencies(dependencies)
 
+    out: dict[TH, Any] = {}
     for layer in layers:
         for item in layer:
             out[item] = substitute(content[item], out)
@@ -82,8 +87,8 @@ def substitute_content(
 
 def eval_content(
     content: Mapping[TH, Any],
+    *,
     libsl: ModuleType,
-    is_root: Callable[[Any], bool],
     is_dependency: Callable[[Any], bool],
 ) -> dict[TH, scalar.NumberT]:
     """Evaluate a group of
@@ -101,18 +106,10 @@ def eval_content(
         callable that takes a python object/value and returns True
         if it should be considered as the dependency of another.
     """
-    out: dict[TH, scalar.NumberT] = {}
-
-    dependencies = defaultdict[TH, set[Any]](set)
-    for k, v in content.items():
-        if is_root(v):
-            out[k] = v
-        else:
-            for el in filter(is_dependency, inspect(v).keys()):
-                dependencies[k].add(el)
-
+    dependencies = compute_dependencies(content, is_dependency)
     layers = solve_dependencies(dependencies)
 
+    out: dict[TH, scalar.NumberT] = {}
     for layer in layers:
         for item in layer:
             out[item] = evaluate(substitute(content[item], out), libsl)

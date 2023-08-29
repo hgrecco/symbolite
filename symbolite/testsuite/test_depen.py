@@ -28,10 +28,6 @@ class SimpleParameter(scalar.Scalar):
         return self
 
 
-def is_root(x: Any) -> bool:
-    return isinstance(x, scalar.NumberT)
-
-
 def is_dependency(x: Any) -> bool:
     return isinstance(x, (SimpleParameter, SimpleVariable))
 
@@ -39,7 +35,7 @@ def is_dependency(x: Any) -> bool:
 def test_substitute_content():
     d = {SimpleParameter("x"): 1, SimpleParameter("y"): 2 * SimpleParameter("x")}
 
-    assert substitute_content(d, is_root, is_dependency) == {
+    assert substitute_content(d, is_dependency=is_dependency) == {
         SimpleParameter("x"): 1,
         SimpleParameter("y"): (2 * SimpleParameter("x")).subs(
             {SimpleParameter("x"): 1}
@@ -50,11 +46,13 @@ def test_substitute_content():
 def test_eval_content():
     d = {SimpleParameter("x"): 1}
 
-    assert eval_content(d, libstd, is_root, is_dependency) == {SimpleParameter("x"): 1}
+    assert eval_content(d, libsl=libstd, is_dependency=is_dependency) == {
+        SimpleParameter("x"): 1
+    }
 
     d = {SimpleParameter("x"): 1, SimpleParameter("y"): 2 * SimpleParameter("x")}
 
-    assert eval_content(d, libstd, is_root, is_dependency) == {
+    assert eval_content(d, libsl=libstd, is_dependency=is_dependency) == {
         SimpleParameter("x"): 1,
         SimpleParameter("y"): 2,
     }
@@ -66,7 +64,7 @@ def test_cyclic():
     }
 
     with pytest.raises(ValueError):
-        assert eval_content(d, libstd, is_root, is_dependency)
+        assert eval_content(d, libsl=libstd, is_dependency=is_dependency)
 
     d = {
         SimpleParameter("x"): 2 * SimpleParameter("y"),
@@ -74,4 +72,4 @@ def test_cyclic():
     }
 
     with pytest.raises(ValueError):
-        assert eval_content(d, libstd, is_root, is_dependency)
+        assert eval_content(d, libsl=libstd, is_dependency=is_dependency)

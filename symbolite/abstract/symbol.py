@@ -120,9 +120,11 @@ class Symbol(Named):
         return getitem(self, key)
 
     # Emulating attribute
-    def __getattr__(self, key: Any) -> Self:
+    def __getattr__(self, key: str) -> Self:
         """Defines behavior for when an item is accessed,
         using the notation self.key"""
+        if key.startswith("__"):
+            raise AttributeError(key)
         return symgetattr(self, key)
 
     # Normal arithmetic operators

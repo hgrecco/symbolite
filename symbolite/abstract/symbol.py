@@ -404,7 +404,7 @@ class Function(BaseFunction):
 
 def _add_parenthesis(
     self: UnaryFunction | BinaryFunction,
-    arg: UnaryFunction | BinaryFunction,
+    arg: UnaryFunction | BinaryFunction | Symbol,
     *,
     right: bool,
 ) -> str:
@@ -416,6 +416,8 @@ def _add_parenthesis(
         ):
             if p < self.precedence or (right and p <= self.precedence):
                 return f"({arg})"
+        case _:
+            pass
     return str(arg)
 
 

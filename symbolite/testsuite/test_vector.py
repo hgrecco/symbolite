@@ -57,7 +57,7 @@ def test_impl(libsl: types.ModuleType):
 
     v1234 = (1, 2, 3, 4)
     try:
-        import numpy as np
+        import numpy as np  # type: ignore
 
         v1234 = np.asarray(v1234)  # type: ignore
     except ImportError:
@@ -76,7 +76,7 @@ def test_impl(libsl: types.ModuleType):
 @requires_numpy
 def test_impl_numpy():
     try:
-        import numpy as np
+        import numpy as np  # type: ignore
 
         from symbolite.impl import libnumpy as libsl
     except ImportError:

@@ -1,13 +1,12 @@
 """
-    symbolite.core.util
-    ~~~~~~~~~~~~~~~~~~~
+symbolite.core.util
+~~~~~~~~~~~~~~~~~~~
 
-    Symbolite core util functions.
+Symbolite core util functions.
 
-    :copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
-
 
 from types import ModuleType
 from typing import Any, Callable, Hashable, Iterator, Mapping, TypeVar

@@ -1,13 +1,12 @@
 """
-    symbolite
-    ~~~~~~~~~
+symbolite
+~~~~~~~~~
 
-    A minimal symbolic python package.
+A minimal symbolic python package.
 
-    :copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
-
 
 from .abstract import Function, Scalar, Symbol, Vector, scalar, vector
 

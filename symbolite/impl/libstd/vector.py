@@ -1,12 +1,12 @@
 """
-    symbolite.impl.libstd.vector
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+symbolite.impl.libstd.vector
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Translate symbolite.abstract.vector
-    into values and functions defined in Python's math module.
+Translate symbolite.abstract.vector
+into values and functions defined in Python's math module.
 
-    :copyright: 2023 by Symbolite-array Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2023 by Symbolite-array Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 import math

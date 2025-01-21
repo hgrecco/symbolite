@@ -1,12 +1,12 @@
 """
-    symbolite.impl.libsympy.scalar
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+symbolite.impl.libsympy.scalar
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Translate symbolite.abstract.scalar
-    into values and functions defined in SymPy.
+Translate symbolite.abstract.scalar
+into values and functions defined in SymPy.
 
-    :copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 from __future__ import annotations

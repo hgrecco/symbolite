@@ -1,12 +1,12 @@
 """
-    symbolite.impl.libstd.scalar
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+symbolite.impl.libstd.scalar
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Translate symbolite.abstract.scalar
-    into values and functions in Python standard library.
+Translate symbolite.abstract.scalar
+into values and functions in Python standard library.
 
-    :copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 from __future__ import annotations

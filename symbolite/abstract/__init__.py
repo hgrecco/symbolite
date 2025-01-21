@@ -1,11 +1,11 @@
 """
-    symbolite.abstract
-    ~~~~~~~~~~~~~~~~~~
+symbolite.abstract
+~~~~~~~~~~~~~~~~~~
 
-    Abstract symbolite primitives.
+Abstract symbolite primitives.
 
-    :copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 from .scalar import Scalar

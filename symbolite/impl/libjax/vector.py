@@ -1,12 +1,12 @@
 """
-    symbolite.impl.libjax.vector
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+symbolite.impl.libjax.vector
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Translate symbolite.abstract.vector
-    into values and functions defined in JAX.
+Translate symbolite.abstract.vector
+into values and functions defined in JAX.
 
-    :copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 import operator

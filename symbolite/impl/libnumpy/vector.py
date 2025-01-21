@@ -1,12 +1,12 @@
 """
-    symbolite.impl.libnumpy.vector
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+symbolite.impl.libnumpy.vector
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Translate symbolite.abstract.vector
-    into values and functions defined in NumPy.
+Translate symbolite.abstract.vector
+into values and functions defined in NumPy.
 
-    :copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 import operator

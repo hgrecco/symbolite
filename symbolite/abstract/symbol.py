@@ -1,11 +1,11 @@
 """
-    symbolite.abstract.symbol
-    ~~~~~~~~~~~~~~~~~~~~~~~~~
+symbolite.abstract.symbol
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Objects and functions for symbol operations.
+Objects and functions for symbol operations.
 
-    :copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 
 from __future__ import annotations
@@ -55,8 +55,7 @@ class Named:
     def is_anonymous(self) -> bool:
         return self.name is None
 
-    def format(self, *args: Any, **kwargs: Any) -> str:
-        ...
+    def format(self, *args: Any, **kwargs: Any) -> str: ...
 
 
 @dataclasses.dataclass(frozen=True)

@@ -1,13 +1,12 @@
 """
-    symbolite.abstract.vector
-    ~~~~~~~~~~~~~~~~~~~~~~~~~
+symbolite.abstract.vector
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Objects and functions for vector operations.
+Objects and functions for vector operations.
 
-    :copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
-
 
 from __future__ import annotations
 
@@ -50,8 +49,7 @@ def vectorize(
     symbol_names: Sequence[str] | Mapping[str, int],
     varname: str = "vec",
     scalar_type: type[Scalar] = Scalar,
-) -> NumberT:
-    ...
+) -> NumberT: ...
 
 
 @overload
@@ -60,8 +58,7 @@ def vectorize(
     symbol_names: Sequence[str] | Mapping[str, int],
     varname: str = "vec",
     scalar_type: type[Scalar] = Scalar,
-) -> Symbol:
-    ...
+) -> Symbol: ...
 
 
 @overload
@@ -70,8 +67,7 @@ def vectorize(
     symbol_names: Sequence[str] | Mapping[str, int],
     varname: str = "vec",
     scalar_type: type[Scalar] = Scalar,
-) -> tuple[NumberT | Symbol, ...]:
-    ...
+) -> tuple[NumberT | Symbol, ...]: ...
 
 
 def vectorize(
@@ -115,8 +111,7 @@ def auto_vectorize(
     expr: NumberT,
     varname: str = "vec",
     scalar_type: type[Scalar] = Scalar,
-) -> tuple[tuple[str, ...], Symbol]:
-    ...
+) -> tuple[tuple[str, ...], Symbol]: ...
 
 
 @overload
@@ -124,8 +119,7 @@ def auto_vectorize(
     expr: Symbol,
     varname: str = "vec",
     scalar_type: type[Scalar] = Scalar,
-) -> tuple[tuple[str, ...], Symbol]:
-    ...
+) -> tuple[tuple[str, ...], Symbol]: ...
 
 
 @overload
@@ -133,8 +127,7 @@ def auto_vectorize(
     expr: Iterable[Symbol],
     varname: str = "vec",
     scalar_type: type[Scalar] = Scalar,
-) -> tuple[tuple[str, ...], tuple[Symbol, ...]]:
-    ...
+) -> tuple[tuple[str, ...], tuple[Symbol, ...]]: ...
 
 
 def auto_vectorize(

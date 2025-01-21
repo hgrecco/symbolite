@@ -54,14 +54,23 @@ def test_methods():
 @pytest.mark.parametrize("libsl", all_impl.values(), ids=all_impl.keys())
 def test_impl(libsl: types.ModuleType):
     v = vector.Vector("v")
+
+    v1234 = (1, 2, 3, 4)
+    try:
+        import numpy as np
+
+        v1234 = np.asarray(v1234)  # type: ignore
+    except ImportError:
+        pass
+
     try:
         expr = vector.sum(v)
-        assert expr.subs_by_name(v=(1, 2, 3, 4)).eval(libsl=libsl) == 10
+        assert expr.subs_by_name(v=v1234).eval(libsl=libsl) == 10
     except Unsupported:
         pass
 
     expr = vector.prod(v)
-    assert expr.subs_by_name(v=(1, 2, 3, 4)).eval(libsl=libsl) == 24
+    assert expr.subs_by_name(v=v1234).eval(libsl=libsl) == 24
 
 
 @requires_numpy
@@ -86,7 +95,7 @@ def test_impl_numpy():
 @requires_sympy
 def test_impl_sympy():
     try:
-        import sympy as sy
+        import sympy as sy  # type: ignore
 
         from symbolite.impl import libsympy as libsl
     except ImportError:

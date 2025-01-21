@@ -109,7 +109,7 @@ Three other implementations are provided:
 ```python
 >>> from symbolite.impl import libnumpy
 >>> expr3.eval(libsl=libnumpy)
-2.6327476856711
+np.float64(2.6327476856711183)
 >>> from symbolite.impl import libsympy
 >>> expr3.eval(libsl=libsympy)
 2.6327476856711

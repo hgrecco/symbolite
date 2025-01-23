@@ -86,7 +86,7 @@ class SymbolicNamespace:
         return cls.expressions.symbol_names(namespace)
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, repr=False)
 class AutoSymbol(Symbol):
     name: str = "<auto>"
 

@@ -19,7 +19,7 @@ from .symbol import BaseFunction, Symbol
 VectorT = Iterable[NumberT]
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, repr=False)
 class Vector(Symbol):
     """A user defined symbol."""
 
@@ -30,7 +30,7 @@ class Vector(Symbol):
         raise AttributeError(key)
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, repr=False)
 class CumulativeFunction(BaseFunction):
     namespace: str = "vector"
     arity: int = 1

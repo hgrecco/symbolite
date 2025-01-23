@@ -18,6 +18,8 @@ from typing import Any, Callable, Generator, Mapping
 
 from typing_extensions import Self
 
+from symbolite.core.util import repr_without_defaults
+
 from ..core import (
     Unsupported,
     evaluate,
@@ -37,7 +39,7 @@ def filter_namespace(
     return _inner
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, repr=False)
 class Named:
     name: str | None = None
     namespace: str = ""
@@ -51,6 +53,9 @@ class Named:
 
         return self.name
 
+    def __repr__(self) -> str:
+        return repr_without_defaults(self)
+
     @property
     def is_anonymous(self) -> bool:
         return self.name is None
@@ -58,7 +63,7 @@ class Named:
     def format(self, *args: Any, **kwargs: Any) -> str: ...
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, repr=False)
 class Symbol(Named):
     """Base class for objects that might operate with others using
     python operators that map to magic methods
@@ -357,7 +362,7 @@ class Symbol(Named):
         return set(map(str, filter(ff, self.yield_named(False))))
 
 
-@dataclasses.dataclass(frozen=True, kw_only=True)
+@dataclasses.dataclass(frozen=True, repr=False, kw_only=True)
 class BaseFunction(Named):
     """A callable primitive that will return a call."""
 
@@ -396,7 +401,7 @@ class BaseFunction(Named):
         return f"{str(self)}({', '.join((str(v) for v in plain_args))})"
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, repr=False)
 class Function(BaseFunction):
     def __call__(self, *args: Any, **kwargs: Any) -> Symbol:
         return self._call(*args, **kwargs)
@@ -421,7 +426,7 @@ def _add_parenthesis(
     return str(arg)
 
 
-@dataclasses.dataclass(frozen=True, kw_only=True)
+@dataclasses.dataclass(frozen=True, repr=False, kw_only=True)
 class UnaryFunction(BaseFunction):
     arity: int = 1
     precedence: int
@@ -435,7 +440,7 @@ class UnaryFunction(BaseFunction):
         return self._call(arg1)
 
 
-@dataclasses.dataclass(frozen=True, kw_only=True)
+@dataclasses.dataclass(frozen=True, repr=False, kw_only=True)
 class BinaryFunction(BaseFunction):
     arity: int = 2
     precedence: int
@@ -450,7 +455,7 @@ class BinaryFunction(BaseFunction):
         return self._call(arg1, arg2)
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, repr=False)
 class Expression:
     """A Function that has been called with certain arguments."""
 
@@ -468,6 +473,9 @@ class Expression:
 
     def __str__(self) -> str:
         return self.func.format(*self.args, *self.kwargs)
+
+    def __repr__(self) -> str:
+        return repr_without_defaults(self)
 
     def yield_named(
         self, include_anonymous: bool = False

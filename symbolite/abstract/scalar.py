@@ -19,7 +19,7 @@ from .symbol import BaseFunction, Symbol
 NumberT = int | float | complex
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, repr=False)
 class Scalar(Symbol):
     """A user defined symbol."""
 
@@ -30,7 +30,7 @@ class Scalar(Symbol):
         raise AttributeError(key)
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, repr=False)
 class ScalarUnaryFunction(BaseFunction):
     namespace: str = "scalar"
     arity: int = 1
@@ -39,7 +39,7 @@ class ScalarUnaryFunction(BaseFunction):
         return super()._call(arg1)  # type: ignore
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, repr=False)
 class ScalarBinaryFunction(BaseFunction):
     namespace: str = "scalar"
     arity: int = 2

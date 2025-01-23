@@ -8,6 +8,7 @@ Symbolite core util functions.
 :license: BSD, see LICENSE for more details.
 """
 
+import dataclasses
 from types import ModuleType
 from typing import Any, Callable, Hashable, Iterator, Mapping, TypeVar
 
@@ -113,3 +114,18 @@ def eval_content(
             out[item] = evaluate(substitute(content[item], out), libsl)
 
     return out
+
+
+def repr_without_defaults(dataclass_instance: Any) -> str:
+    """Generate dataclass representation, skipping fields with default values."""
+    if not dataclasses.is_dataclass(dataclass_instance):
+        return repr(dataclass_instance)
+
+    include: dict[str, str] = {}
+    for field in dataclasses.fields(dataclass_instance):
+        value = getattr(dataclass_instance, field.name)
+        if field.default is dataclasses.MISSING or field.default != value:
+            include[field.name] = repr(value)
+
+    args_repr = (f"{k}={v}" for k, v in include.items())
+    return f"{dataclass_instance.__class__.__name__}({', '.join(args_repr)})"

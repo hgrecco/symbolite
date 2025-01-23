@@ -25,8 +25,8 @@ def test_typing():
     reveal_type(v + v)  # R: symbolite.abstract.vector.Vector # noqa: F821
     reveal_type(2 + v)  # R: symbolite.abstract.vector.Vector # noqa: F821
     reveal_type(v + 2)  # R: symbolite.abstract.vector.Vector # noqa: F821
-    # reveal_type(v + xsy) # R: symbolite.abstract.symbol.Symbol # noqa: F821
-    reveal_type(xsy + v)  # R: symbolite.abstract.symbol.Symbol # noqa: F821
+    # reveal_type(v + xsy) # R: symbolite.abstract.vector.Vector # noqa: F821
+    # reveal_type(xsy + v)  # R: symbolite.abstract.vector.Vector # noqa: F821
     reveal_type(vec[0])  # R: symbolite.abstract.scalar.Scalar # noqa: F821
     reveal_type(vec[x])  # R: symbolite.abstract.scalar.Scalar # noqa: F821
     reveal_type(vector.sum(vec))  # R: symbolite.abstract.scalar.Scalar # noqa: F821

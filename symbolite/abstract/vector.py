@@ -38,6 +38,10 @@ class CumulativeFunction(BaseFunction):
     def __call__(self, arg1: Vector | VectorT) -> Scalar:
         return super()._call(arg1)  # type: ignore
 
+    @property
+    def output_type(self):
+        return Scalar
+
 
 sum = CumulativeFunction("sum", namespace="vector")
 prod = CumulativeFunction("prod", namespace="vector")

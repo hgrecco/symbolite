@@ -38,6 +38,10 @@ class ScalarUnaryFunction(BaseFunction):
     def __call__(self, arg1: Scalar | NumberT) -> Scalar:
         return super()._call(arg1)  # type: ignore
 
+    @property
+    def output_type(self):
+        return Scalar
+
 
 @dataclasses.dataclass(frozen=True, repr=False)
 class ScalarBinaryFunction(BaseFunction):
@@ -46,6 +50,10 @@ class ScalarBinaryFunction(BaseFunction):
 
     def __call__(self, arg1: Scalar | NumberT, arg2: Scalar | NumberT) -> Scalar:
         return super()._call(arg1, arg2)  # type: ignore
+
+    @property
+    def output_type(self):
+        return Scalar
 
 
 # "gcd": None,  # 1 to ---

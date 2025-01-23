@@ -58,6 +58,7 @@ channels = ["https://fast.prefix.dev/conda-forge"]
 platforms = ["osx-arm64", "linux-64"]
 
 [tool.pixi.environments]
+dev = { features = ["test", "backends", "dev"], solve-group = "default" }
 lint = { features = ["lint"], no-default-feature = true }
 build = { features = ["build"], no-default-feature = true }
 test = { features = ["test", "backends"], solve-group = "default" }
@@ -65,6 +66,9 @@ test-py310 = ["test", "py310"]
 test-py311 = ["test", "py311"]
 test-py312 = ["test", "py312"]
 test-py313 = ["test", "py313"]
+
+[tool.pixi.feature.dev.dependencies]
+jupyter = "*"
 
 [tool.pixi.feature.backends.dependencies]
 numpy = "*"

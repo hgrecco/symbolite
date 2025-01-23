@@ -98,9 +98,6 @@ publish = "uv publish"
 pytest = "*"
 pytest-mypy-testing = "*"
 
-[tool.pixi.feature.test.pypi-dependencies]
-symbolite = { path = ".", editable = true }
-
 [tool.pixi.feature.test.tasks]
 test = "pytest --doctest-modules"
 

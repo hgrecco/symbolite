@@ -13,19 +13,16 @@ from __future__ import annotations
 import dataclasses
 import functools
 import types
-from operator import attrgetter
-from typing import Any, Callable, Generator, Mapping
+from typing import Any, Callable, Generator, Generic, Mapping, ParamSpec, TypeVar
 
 from typing_extensions import Self
 
 from symbolite.core.util import repr_without_defaults
 
-from ..core import (
-    Unsupported,
-    evaluate,
-    substitute,
-    substitute_by_name,
-)
+from ..core import Unsupported, evaluate, get_impl, substitute, substitute_by_name
+
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
 def filter_namespace(
@@ -326,7 +323,7 @@ class Symbol(Named):
         if self.namespace:
             name = str(self)
 
-            value = attrgetter(name)(libsl)
+            value = get_impl(name, libsl)
 
             if value is Unsupported:
                 raise Unsupported(f"{name} is not supported in module {libsl.__name__}")
@@ -337,7 +334,7 @@ class Symbol(Named):
             name = (
                 f"{self.__class__.__module__.split('.')[-1]}.{self.__class__.__name__}"
             )
-            f = attrgetter(name)(libsl)
+            f = get_impl(name, libsl)
 
             if f is Unsupported:
                 raise Unsupported(f"{name} is not supported in module {libsl.__name__}")
@@ -424,6 +421,27 @@ def _add_parenthesis(
         case _:
             pass
     return str(arg)
+
+
+@dataclasses.dataclass(frozen=True, repr=False, kw_only=True)
+class UserFunction(Function, Generic[P, T]):
+    default_impl: Callable[P, T]
+    _impls: dict[types.ModuleType, Callable[P, T]] = dataclasses.field(
+        init=False, default_factory=dict
+    )
+
+    @classmethod
+    def from_function(cls, func: Callable[P, T]) -> Self:
+        return cls(name=func.__name__, namespace="user", default_impl=func)
+
+    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> Symbol:
+        return super().__call__(*args, **kwargs)
+
+    def register_impl(self, func: Callable[P, T], libsl: types.ModuleType):
+        self._impls[libsl] = func
+
+    def get_impl(self, libsl: types.ModuleType) -> Callable[P, T]:
+        return self._impls.get(libsl, self.default_impl)
 
 
 @dataclasses.dataclass(frozen=True, repr=False, kw_only=True)
@@ -559,7 +577,8 @@ class Expression:
         libs
             implementations
         """
-        func = attrgetter(str(self.func))(libsl)
+
+        func = get_impl(self.func, libsl)
         args = tuple(evaluate(arg, libsl) for arg in self.args)
         kwargs = {k: evaluate(arg, libsl) for k, arg in self.kwargs_items}
 

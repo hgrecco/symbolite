@@ -11,9 +11,14 @@ Symbolite core classes and functions.
 import collections
 import types
 import warnings
-from typing import Any, Callable, Mapping, Sequence
+from operator import attrgetter
+from typing import Any, Callable, Mapping, Protocol, Sequence
 
 from ..impl import find_module_in_stack
+
+
+class GetImpl(Protocol):
+    def get_impl(self, libsl: types.ModuleType) -> Callable[..., Any]: ...
 
 
 class Unsupported(ValueError):
@@ -162,3 +167,29 @@ def substitute_by_name(expr: Any, **replacements: Any) -> Any:
     if hasattr(expr, "subs_by_name"):
         return expr.subs_by_name(**replacements)
     return expr
+
+
+def get_impl(expr: Any, libsl: types.ModuleType | None = None) -> Any | Unsupported:
+    """Get implementation for a given expression.
+
+    If no implementation library is provided:
+    1. 'libsl' will be looked up going back though the stack
+        until is found.
+    2. If still not found, the implementation using the python
+        math module will be used (and a warning will be issued).
+
+    Parameters
+    ----------
+    expr
+        symbolic expression.
+    libs
+        implementation.
+    """
+    if libsl is None:
+        libsl = find_module_in_stack()
+    if hasattr(expr, "get_impl"):
+        return expr.get_impl(libsl)
+    elif isinstance(expr, str):
+        return attrgetter(expr)(libsl)
+    else:
+        return attrgetter(str(expr))(libsl)

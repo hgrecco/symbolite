@@ -2,6 +2,7 @@ import pytest
 
 from symbolite import Function, Symbol
 from symbolite.abstract.symbol import Expression
+from symbolite.core import substitute
 from symbolite.impl import find_module_in_stack
 
 x, y, z = map(Symbol, "x y z".split())
@@ -87,7 +88,7 @@ def test_str(expr: Symbol, result: Symbol):
     ],
 )
 def test_subs(expr: Symbol, result: Symbol):
-    assert expr.subs({y: z}) == result
+    assert substitute(expr, {y: z}) == result
 
 
 @pytest.mark.parametrize(

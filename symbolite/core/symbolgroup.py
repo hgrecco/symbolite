@@ -5,28 +5,13 @@ import types
 from typing import Any, Iterable, Mapping
 
 from ..abstract.symbol import Symbol
+from . import substitute
 
 
 class SymbolicList(list[Symbol]):
     @classmethod
     def from_iterable(cls, it: Iterable[Symbol]):
         return cls(it)
-
-    def subs(self, *mappers: Mapping[Any, Any]) -> SymbolicList:
-        """Replace symbols, functions, values, etc by others.
-
-        If multiple mappers are provided,
-            they will be used in order (using a ChainMap)
-
-        If a given object is not found in the mappers,
-            the same object will be returned.
-
-        Parameters
-        ----------
-        *mappers
-            dictionaries mapping source to destination objects.
-        """
-        return self.__class__.from_iterable((se.subs(*mappers) for se in self))
 
     def subs_by_name(self, **symbols: Any) -> SymbolicList:
         """Replace Symbols by values or objects, matching by name.
@@ -76,6 +61,24 @@ class SymbolicList(list[Symbol]):
 
     def __str__(self):
         return "\n".join(str(se) for se in self)
+
+
+@substitute.register
+def substitute_list(self: SymbolicList, *mappers: Mapping[Any, Any]) -> SymbolicList:
+    """Replace symbols, functions, values, etc by others.
+
+    If multiple mappers are provided,
+        they will be used in order (using a ChainMap)
+
+    If a given object is not found in the mappers,
+        the same object will be returned.
+
+    Parameters
+    ----------
+    *mappers
+        dictionaries mapping source to destination objects.
+    """
+    return self.__class__.from_iterable((substitute(se, *mappers) for se in self))
 
 
 class SymbolicNamespace:

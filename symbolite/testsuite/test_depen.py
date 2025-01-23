@@ -4,6 +4,7 @@ from typing import Any
 import pytest
 
 from symbolite import scalar
+from symbolite.core import substitute
 from symbolite.core.util import eval_content, substitute_content
 from symbolite.impl import libstd
 
@@ -37,8 +38,9 @@ def test_substitute_content():
 
     assert substitute_content(d, is_dependency=is_dependency) == {
         SimpleParameter("x"): 1,
-        SimpleParameter("y"): (2 * SimpleParameter("x")).subs(
-            {SimpleParameter("x"): 1}
+        SimpleParameter("y"): substitute(
+            2 * SimpleParameter("x"),
+            {SimpleParameter("x"): 1},
         ),
     }
 

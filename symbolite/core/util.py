@@ -11,7 +11,6 @@ Symbolite core util functions.
 from types import ModuleType
 from typing import Any, Callable, Hashable, Iterator, Mapping, TypeVar
 
-from ..abstract import scalar
 from . import evaluate, inspect, substitute
 
 TH = TypeVar("TH", bound=Hashable)
@@ -72,7 +71,7 @@ def substitute_content(
     content: Mapping[TH, Any],
     *,
     is_dependency: Callable[[Any], bool],
-) -> dict[TH, scalar.NumberT]:
+) -> dict[TH, Any]:
     dependencies = compute_dependencies(content, is_dependency)
     layers = solve_dependencies(dependencies)
 
@@ -89,7 +88,7 @@ def eval_content(
     *,
     libsl: ModuleType,
     is_dependency: Callable[[Any], bool],
-) -> dict[TH, scalar.NumberT]:
+) -> dict[TH, Any]:
     """Evaluate a group of
 
     Parameters
@@ -108,7 +107,7 @@ def eval_content(
     dependencies = compute_dependencies(content, is_dependency)
     layers = solve_dependencies(dependencies)
 
-    out: dict[TH, scalar.NumberT] = {}
+    out: dict[TH, Any] = {}
     for layer in layers:
         for item in layer:
             out[item] = evaluate(substitute(content[item], out), libsl)

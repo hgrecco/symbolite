@@ -91,37 +91,37 @@ class Symbol(Named):
     expression: Expression | None = None
 
     # Comparison methods (not operator)
-    def eq(self, other: Any) -> Self:
+    def eq(self, other: Any) -> Symbol:
         return eq(self, other)
 
-    def ne(self, other: Any) -> Self:
+    def ne(self, other: Any) -> Symbol:
         return ne(self, other)
 
     # Comparison magic methods
-    def __lt__(self, other: Any) -> Self:
+    def __lt__(self, other: Any) -> Symbol:
         """Implements less than comparison using the < operator."""
         return lt(self, other)
 
-    def __le__(self, other: Any) -> Self:
+    def __le__(self, other: Any) -> Symbol:
         """Implements less than or equal comparison using the <= operator."""
         return le(self, other)
 
-    def __gt__(self, other: Any) -> Self:
+    def __gt__(self, other: Any) -> Symbol:
         """Implements greater than comparison using the > operator."""
         return gt(self, other)
 
-    def __ge__(self, other: Any) -> Self:
+    def __ge__(self, other: Any) -> Symbol:
         """Implements greater than or equal comparison using the >= operator."""
         return ge(self, other)
 
     # Emulating container types
-    def __getitem__(self, key: Any) -> Self:
+    def __getitem__(self, key: Any) -> Symbol:
         """Defines behavior for when an item is accessed,
         using the notation self[key]."""
         return getitem(self, key)
 
     # Emulating attribute
-    def __getattr__(self, key: str) -> Self:
+    def __getattr__(self, key: str) -> Symbol:
         """Defines behavior for when an item is accessed,
         using the notation self.key"""
         if key.startswith("__"):
@@ -129,124 +129,124 @@ class Symbol(Named):
         return symgetattr(self, key)
 
     # Normal arithmetic operators
-    def __add__(self, other: Any) -> Self:
+    def __add__(self, other: Any) -> Symbol:
         """Implements addition."""
         return add(self, other)
 
-    def __sub__(self, other: Any) -> Self:
+    def __sub__(self, other: Any) -> Symbol:
         """Implements subtraction."""
         return sub(self, other)
 
-    def __mul__(self, other: Any) -> Self:
+    def __mul__(self, other: Any) -> Symbol:
         """Implements multiplication."""
         return mul(self, other)
 
-    def __matmul__(self, other: Any) -> Self:
+    def __matmul__(self, other: Any) -> Symbol:
         """Implements multiplication."""
         return matmul(self, other)
 
-    def __truediv__(self, other: Any) -> Self:
+    def __truediv__(self, other: Any) -> Symbol:
         """Implements true division."""
         return truediv(self, other)
 
-    def __floordiv__(self, other: Any) -> Self:
+    def __floordiv__(self, other: Any) -> Symbol:
         """Implements integer division using the // operator."""
         return floordiv(self, other)
 
-    def __mod__(self, other: Any) -> Self:
+    def __mod__(self, other: Any) -> Symbol:
         """Implements modulo using the % operator."""
         return mod(self, other)
 
-    def __pow__(self, other: Any, modulo: Any = None) -> Self:
+    def __pow__(self, other: Any, modulo: Any = None) -> Symbol:
         """Implements behavior for exponents using the ** operator."""
         if modulo is None:
             return pow(self, other)
         else:
             return pow3(self, other, modulo)
 
-    def __lshift__(self, other: Any) -> Self:
+    def __lshift__(self, other: Any) -> Symbol:
         """Implements left bitwise shift using the << operator."""
         return lshift(self, other)
 
-    def __rshift__(self, other: Any) -> Self:
+    def __rshift__(self, other: Any) -> Symbol:
         """Implements right bitwise shift using the >> operator."""
         return rshift(self, other)
 
-    def __and__(self, other: Any) -> Self:
+    def __and__(self, other: Any) -> Symbol:
         """Implements bitwise and using the & operator."""
         return and_(self, other)
 
-    def __or__(self, other: Any) -> Self:
+    def __or__(self, other: Any) -> Symbol:
         """Implements bitwise or using the | operator."""
         return or_(self, other)
 
-    def __xor__(self, other: Any) -> Self:
+    def __xor__(self, other: Any) -> Symbol:
         """Implements bitwise xor using the ^ operator."""
         return xor(self, other)
 
     # Reflected arithmetic operators
-    def __radd__(self, other: Any) -> Self:
+    def __radd__(self, other: Any) -> Symbol:
         """Implements reflected addition."""
         return add(other, self)
 
-    def __rsub__(self, other: Any) -> Self:
+    def __rsub__(self, other: Any) -> Symbol:
         """Implements reflected subtraction."""
         return sub(other, self)
 
-    def __rmul__(self, other: Any) -> Self:
+    def __rmul__(self, other: Any) -> Symbol:
         """Implements reflected multiplication."""
         return mul(other, self)
 
-    def __rmatmul__(self, other: Any) -> Self:
+    def __rmatmul__(self, other: Any) -> Symbol:
         """Implements reflected multiplication."""
         return matmul(other, self)
 
-    def __rtruediv__(self, other: Any) -> Self:
+    def __rtruediv__(self, other: Any) -> Symbol:
         """Implements reflected true division."""
         return truediv(other, self)
 
-    def __rfloordiv__(self, other: Any) -> Self:
+    def __rfloordiv__(self, other: Any) -> Symbol:
         """Implements reflected integer division using the // operator."""
         return floordiv(other, self)
 
-    def __rmod__(self, other: Any) -> Self:
+    def __rmod__(self, other: Any) -> Symbol:
         """Implements reflected modulo using the % operator."""
         return mod(other, self)
 
-    def __rpow__(self, other: Any) -> Self:
+    def __rpow__(self, other: Any) -> Symbol:
         """Implements behavior for reflected exponents using the ** operator."""
         return pow(other, self)
 
-    def __rlshift__(self, other: Any) -> Self:
+    def __rlshift__(self, other: Any) -> Symbol:
         """Implements reflected left bitwise shift using the << operator."""
         return lshift(other, self)
 
-    def __rrshift__(self, other: Any) -> Self:
+    def __rrshift__(self, other: Any) -> Symbol:
         """Implements reflected right bitwise shift using the >> operator."""
         return rshift(other, self)
 
-    def __rand__(self, other: Any) -> Self:
+    def __rand__(self, other: Any) -> Symbol:
         """Implements reflected bitwise and using the & operator."""
         return and_(other, self)
 
-    def __ror__(self, other: Any) -> Self:
+    def __ror__(self, other: Any) -> Symbol:
         """Implements reflected bitwise or using the | operator."""
         return or_(other, self)
 
-    def __rxor__(self, other: Any) -> Self:
+    def __rxor__(self, other: Any) -> Symbol:
         """Implements reflected bitwise xor using the ^ operator."""
         return xor(other, self)
 
     # Unary operators and functions
-    def __neg__(self) -> Self:
+    def __neg__(self) -> Symbol:
         """Implements behavior for negation (e.g. -some_object)"""
         return neg(self)
 
-    def __pos__(self) -> Self:
+    def __pos__(self) -> Symbol:
         """Implements behavior for unary positive (e.g. +some_object)"""
         return pos(self)
 
-    def __invert__(self) -> Self:
+    def __invert__(self) -> Symbol:
         """Implements behavior for inversion using the ~ operator."""
         return invert(self)
 
@@ -363,6 +363,17 @@ class Symbol(Named):
         """
         ff = filter_namespace(namespace)
         return set(map(str, filter(ff, self.yield_named(False))))
+
+
+S = TypeVar("S", bound=Symbol)
+
+
+def downcast(symbol_obj: Symbol, subclass: type[S]) -> S:
+    return subclass(
+        name=symbol_obj.name,
+        namespace=symbol_obj.namespace,
+        expression=symbol_obj.expression,
+    )
 
 
 @dataclasses.dataclass(frozen=True, repr=False, kw_only=True)

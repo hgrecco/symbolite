@@ -14,7 +14,8 @@ import dataclasses
 from typing import Any
 
 from ..core import Unsupported
-from .symbol import BaseFunction, Symbol
+from . import symbol
+from .symbol import BaseFunction, Symbol, downcast
 
 NumberT = int | float | complex
 
@@ -28,6 +29,128 @@ class Scalar(Symbol):
 
     def __getattr__(self, key: Any):
         raise AttributeError(key)
+
+    # Normal arithmetic operators
+    def __add__(self, other: Any) -> Scalar:
+        """Implements addition."""
+        return downcast(symbol.add(self, other), Scalar)
+
+    def __sub__(self, other: Any) -> Scalar:
+        """Implements subtraction."""
+        return downcast(symbol.sub(self, other), Scalar)
+
+    def __mul__(self, other: Any) -> Scalar:
+        """Implements multiplication."""
+        return downcast(symbol.mul(self, other), Scalar)
+
+    def __matmul__(self, other: Any) -> Scalar:
+        """Implements multiplication."""
+        return downcast(symbol.matmul(self, other), Scalar)
+
+    def __truediv__(self, other: Any) -> Scalar:
+        """Implements true division."""
+        return downcast(symbol.truediv(self, other), Scalar)
+
+    def __floordiv__(self, other: Any) -> Scalar:
+        """Implements integer division using the // operator."""
+        return downcast(symbol.floordiv(self, other), Scalar)
+
+    def __mod__(self, other: Any) -> Scalar:
+        """Implements modulo using the % operator."""
+        return downcast(symbol.mod(self, other), Scalar)
+
+    def __pow__(self, other: Any, modulo: Any = None) -> Scalar:
+        """Implements behavior for exponents using the ** operator."""
+        if modulo is None:
+            return downcast(symbol.pow(self, other), Scalar)
+        else:
+            return downcast(symbol.pow3(self, other, modulo), Scalar)
+
+    def __lshift__(self, other: Any) -> Scalar:
+        """Implements left bitwise shift using the << operator."""
+        return downcast(symbol.lshift(self, other), Scalar)
+
+    def __rshift__(self, other: Any) -> Scalar:
+        """Implements right bitwise shift using the >> operator."""
+        return downcast(symbol.rshift(self, other), Scalar)
+
+    def __and__(self, other: Any) -> Scalar:
+        """Implements bitwise and using the & operator."""
+        return downcast(symbol.and_(self, other), Scalar)
+
+    def __or__(self, other: Any) -> Scalar:
+        """Implements bitwise or using the | operator."""
+        return downcast(symbol.or_(self, other), Scalar)
+
+    def __xor__(self, other: Any) -> Scalar:
+        """Implements bitwise xor using the ^ operator."""
+        return downcast(symbol.xor(self, other), Scalar)
+
+    # Reflected arithmetic operators
+    def __radd__(self, other: Any) -> Scalar:
+        """Implements reflected addition."""
+        return downcast(symbol.add(other, self), Scalar)
+
+    def __rsub__(self, other: Any) -> Scalar:
+        """Implements reflected subtraction."""
+        return downcast(symbol.sub(other, self), Scalar)
+
+    def __rmul__(self, other: Any) -> Scalar:
+        """Implements reflected multiplication."""
+        return downcast(symbol.mul(other, self), Scalar)
+
+    def __rmatmul__(self, other: Any) -> Scalar:
+        """Implements reflected multiplication."""
+        return downcast(symbol.matmul(other, self), Scalar)
+
+    def __rtruediv__(self, other: Any) -> Scalar:
+        """Implements reflected true division."""
+        return downcast(symbol.truediv(other, self), Scalar)
+
+    def __rfloordiv__(self, other: Any) -> Scalar:
+        """Implements reflected integer division using the // operator."""
+        return downcast(symbol.floordiv(other, self), Scalar)
+
+    def __rmod__(self, other: Any) -> Scalar:
+        """Implements reflected modulo using the % operator."""
+        return downcast(symbol.mod(other, self), Scalar)
+
+    def __rpow__(self, other: Any) -> Scalar:
+        """Implements behavior for reflected exponents using the ** operator."""
+        return downcast(symbol.pow(other, self), Scalar)
+
+    def __rlshift__(self, other: Any) -> Scalar:
+        """Implements reflected left bitwise shift using the << operator."""
+        return downcast(symbol.lshift(other, self), Scalar)
+
+    def __rrshift__(self, other: Any) -> Scalar:
+        """Implements reflected right bitwise shift using the >> operator."""
+        return downcast(symbol.rshift(other, self), Scalar)
+
+    def __rand__(self, other: Any) -> Scalar:
+        """Implements reflected bitwise and using the & operator."""
+        return downcast(symbol.and_(other, self), Scalar)
+
+    def __ror__(self, other: Any) -> Scalar:
+        """Implements reflected bitwise or using the | operator."""
+        return downcast(symbol.or_(other, self), Scalar)
+
+    def __rxor__(self, other: Any) -> Scalar:
+        """Implements reflected bitwise xor using the ^ operator."""
+        return downcast(symbol.xor(other, self), Scalar)
+
+    # Unary operators and functions
+    def __neg__(self) -> Scalar:
+        """Implements behavior for negation (e.g. -some_object)"""
+        return downcast(symbol.neg(self), Scalar)
+
+    def __pos__(self) -> Scalar:
+        """Implements behavior for unary positive (e.g. +some_object)"""
+        return downcast(symbol.pos(self), Scalar)
+
+    def __invert__(self) -> Scalar:
+        """Implements behavior for inversion using the ~ operator."""
+        return downcast(symbol.invert(self), Scalar)
 
 
 @dataclasses.dataclass(frozen=True, repr=False)

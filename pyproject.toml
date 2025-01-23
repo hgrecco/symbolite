@@ -26,8 +26,9 @@ requires-python = ">=3.10"
 dependencies = ["typing_extensions"]
 
 [project.urls]
-Homepage = "https://github.com/hgrecco/symbolite"
-Issues = "https://github.com/hgrecco/symbolite/issues"
+homepage = "https://github.com/hgrecco/symbolite"
+issues = "https://github.com/hgrecco/symbolite/issues"
+changelog = "https://github.com/hgrecco/symbolite/blob/main/CHANGES"
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]

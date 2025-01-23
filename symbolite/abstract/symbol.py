@@ -280,7 +280,10 @@ class Symbol(Named):
         """
         if self.expression is None:
             return mapper.get(self, self)
-        return substitute(self.expression, mapper)
+        out = substitute(self.expression, mapper)
+        if not isinstance(out, Expression):
+            return out
+        return self.__class__(name=self.name, namespace=self.namespace, expression=out)
 
     def subs_by_name(self, **mapper: Any) -> Self:
         """Replace Symbols by values or objects, matching by name.
@@ -298,7 +301,10 @@ class Symbol(Named):
         """
         if self.expression is None:
             return mapper.get(str(self), self)
-        return substitute_by_name(self.expression, **mapper)
+        out = substitute_by_name(self.expression, **mapper)
+        if not isinstance(out, Expression):
+            return out
+        return self.__class__(name=self.name, namespace=self.namespace, expression=out)
 
     def eval(self, libsl: types.ModuleType | None = None) -> Any:
         """Evaluate expression.
@@ -527,14 +533,7 @@ class Expression:
         args = tuple(substitute(arg, mapper) for arg in self.args)
         kwargs = {k: substitute(arg, mapper) for k, arg in self.kwargs_items}
 
-        try:
-            return func(*args, **kwargs)
-        except Exception as ex:
-            try:
-                ex.add_note(f"While evaluating {func}(*{args}, **{kwargs}): {ex}")
-            except AttributeError:
-                pass
-            raise ex
+        return Expression(func, args, tuple(kwargs.items()))
 
     def subs_by_name(self, **mapper: Any) -> Self:
         """Replace symbols, functions, values, etc by others.
@@ -554,14 +553,7 @@ class Expression:
         args = tuple(substitute_by_name(arg, **mapper) for arg in self.args)
         kwargs = {k: substitute_by_name(arg, **mapper) for k, arg in self.kwargs_items}
 
-        try:
-            return func(*args, **kwargs)
-        except Exception as ex:
-            try:
-                ex.add_note(f"While evaluating {func}(*{args}, **{kwargs}): {ex}")
-            except AttributeError:
-                pass
-            raise ex
+        return Expression(func, args, tuple(kwargs.items()))
 
     def eval(self, libsl: types.ModuleType | None = None) -> Any:
         """Evaluate expression.

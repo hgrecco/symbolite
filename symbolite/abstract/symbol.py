@@ -13,7 +13,16 @@ from __future__ import annotations
 import dataclasses
 import functools
 import types
-from typing import Any, Callable, Generator, Generic, Mapping, ParamSpec, TypeVar
+from typing import (
+    Any,
+    Callable,
+    Generator,
+    Generic,
+    Literal,
+    Mapping,
+    ParamSpec,
+    TypeVar,
+)
 
 from typing_extensions import Self
 
@@ -442,14 +451,18 @@ def _add_parenthesis(
 
 @dataclasses.dataclass(frozen=True, repr=False, kw_only=True)
 class UserFunction(Function, Generic[P, T]):
-    default_impl: Callable[P, T]
-    _impls: dict[types.ModuleType, Callable[P, T]] = dataclasses.field(
-        init=False, default_factory=dict
+    _impls: dict[types.ModuleType | Literal["default"], Callable[P, T]] = (
+        dataclasses.field(init=False, default_factory=dict)
     )
 
     @classmethod
     def from_function(cls, func: Callable[P, T]) -> Self:
-        return cls(name=func.__name__, namespace="user", default_impl=func)
+        obj = cls(name=func.__name__, namespace="user")
+        obj._impls["default"] = func
+        return obj
+
+    def __repr__(self) -> str:
+        return repr_without_defaults(self, include_private=False)
 
     def __call__(self, *args: P.args, **kwargs: P.kwargs) -> Symbol:
         return super().__call__(*args, **kwargs)
@@ -458,7 +471,15 @@ class UserFunction(Function, Generic[P, T]):
         self._impls[libsl] = func
 
     def get_impl(self, libsl: types.ModuleType) -> Callable[P, T]:
-        return self._impls.get(libsl, self.default_impl)
+        impls = self._impls
+        if libsl in impls:
+            return impls[libsl]
+        elif "default" in impls:
+            return impls["default"]
+        else:
+            raise Exception(
+                f"No implementation found for {libsl.__name__} and no default implementation provided for function {self!s}"
+            )
 
 
 @dataclasses.dataclass(frozen=True, repr=False, kw_only=True)

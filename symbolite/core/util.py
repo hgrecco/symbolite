@@ -116,13 +116,17 @@ def eval_content(
     return out
 
 
-def repr_without_defaults(dataclass_instance: Any) -> str:
+def repr_without_defaults(
+    dataclass_instance: Any, *, include_private: bool = True
+) -> str:
     """Generate dataclass representation, skipping fields with default values."""
     if not dataclasses.is_dataclass(dataclass_instance):
         return repr(dataclass_instance)
 
     include: dict[str, str] = {}
     for field in dataclasses.fields(dataclass_instance):
+        if not include_private and field.name.startswith("_"):
+            continue
         value = getattr(dataclass_instance, field.name)
         if field.default is dataclasses.MISSING or field.default != value:
             include[field.name] = repr(value)

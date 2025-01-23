@@ -133,6 +133,29 @@ which is actually a SymPy expression with a SymPy symbol (`x`).
 And by the way, checkout `vectorize` and `auto_vectorize` functions
 in the vector module.
 
+We provide a simple way to call user defined functions.
+
+```python
+>>> from symbolite import UserFunction
+>>> def abs_times_two(x: float) -> float:
+...     return 2 * abs(x)
+>>> uf = UserFunction.from_function(abs_times_two)
+>>> uf
+UserFunction(name='abs_times_two', namespace='user')
+>>> uf(-1).eval()
+2
+```
+
+and you can register implementations for other backends:
+
+```python
+>>> def np_abs_times_two(x: float) -> float:
+...     return 2 * np.abs(x)
+>>> uf.register_impl(libnumpy, np_abs_times_two)
+>>> uf(-1).eval(libnumpy)
+2
+```
+
 ### Installing:
 
 ```bash

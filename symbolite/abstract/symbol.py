@@ -273,27 +273,6 @@ class Symbol(Named):
         else:
             yield from self.expression.yield_named(include_anonymous)
 
-    def subs(self, mapper: Mapping[Any, Any]) -> Self:
-        """Replace symbols, functions, values, etc by others.
-
-        If multiple mappers are provided,
-            they will be used in order (using a ChainMap)
-
-        If a given object is not found in the mappers,
-            the same object will be returned.
-
-        Parameters
-        ----------
-        mappers
-            dictionary mapping source to destination objects.
-        """
-        if self.expression is None:
-            return mapper.get(self, self)
-        out = substitute(self.expression, mapper)
-        if not isinstance(out, Expression):
-            return out
-        return self.__class__(name=self.name, namespace=self.namespace, expression=out)
-
     def subs_by_name(self, **mapper: Any) -> Self:
         """Replace Symbols by values or objects, matching by name.
 
@@ -372,6 +351,29 @@ class Symbol(Named):
         """
         ff = filter_namespace(namespace)
         return set(map(str, filter(ff, self.yield_named(False))))
+
+
+@substitute.register
+def substitute_symbol(self: Symbol, mapper: Mapping[Any, Any]) -> Symbol:
+    """Replace symbols, functions, values, etc by others.
+
+    If multiple mappers are provided,
+        they will be used in order (using a ChainMap)
+
+    If a given object is not found in the mappers,
+        the same object will be returned.
+
+    Parameters
+    ----------
+    mappers
+        dictionary mapping source to destination objects.
+    """
+    if self.expression is None:
+        return mapper.get(self, self)
+    out = substitute(self.expression, mapper)
+    if not isinstance(out, Expression):
+        return out
+    return self.__class__(name=self.name, namespace=self.namespace, expression=out)
 
 
 S = TypeVar("S", bound=Symbol)
@@ -547,26 +549,6 @@ class Expression:
             if isinstance(v, Symbol):
                 yield from v.yield_named(include_anonymous)
 
-    def subs(self, mapper: Mapping[Any, Any]) -> Self:
-        """Replace symbols, functions, values, etc by others.
-
-        If multiple mappers are provided,
-            they will be used in order (using a ChainMap)
-
-        If a given object is not found in the mappers,
-            the same object will be returned.
-
-        Parameters
-        ----------
-        mappers
-            dictionary mapping source to destination objects.
-        """
-        func = mapper.get(self.func, self.func)
-        args = tuple(substitute(arg, mapper) for arg in self.args)
-        kwargs = {k: substitute(arg, mapper) for k, arg in self.kwargs_items}
-
-        return Expression(func, args, tuple(kwargs.items()))
-
     def subs_by_name(self, **mapper: Any) -> Self:
         """Replace symbols, functions, values, etc by others.
 
@@ -627,6 +609,28 @@ class Expression:
         """
         ff = filter_namespace(namespace)
         return set(map(str, filter(ff, self.yield_named(False))))
+
+
+@substitute.register
+def substitute_expression(self: Expression, mapper: Mapping[Any, Any]) -> Expression:
+    """Replace symbols, functions, values, etc by others.
+
+    If multiple mappers are provided,
+        they will be used in order (using a ChainMap)
+
+    If a given object is not found in the mappers,
+        the same object will be returned.
+
+    Parameters
+    ----------
+    mappers
+        dictionary mapping source to destination objects.
+    """
+    func = mapper.get(self.func, self.func)
+    args = tuple(substitute(arg, mapper) for arg in self.args)
+    kwargs = {k: substitute(arg, mapper) for k, arg in self.kwargs_items}
+
+    return Expression(func, args, tuple(kwargs.items()))
 
 
 # Comparison methods (not operator)

@@ -11,6 +11,7 @@ Symbolite core classes and functions.
 import collections
 import types
 import warnings
+from functools import singledispatch
 from operator import attrgetter
 from typing import Any, Callable, Mapping, Protocol, Sequence
 
@@ -138,6 +139,7 @@ def evaluate(expr: Any, libsl: types.ModuleType | None = None) -> Any:
     return expr
 
 
+@singledispatch
 def substitute(expr: Any, replacements: Mapping[Any, Any]) -> Any:
     """Replace symbols, functions, values, etc by others.
 
@@ -148,8 +150,6 @@ def substitute(expr: Any, replacements: Mapping[Any, Any]) -> Any:
     replacements
         replacement dictionary.
     """
-    if hasattr(expr, "subs"):
-        return expr.subs(replacements)
     return replacements.get(expr, expr)
 
 

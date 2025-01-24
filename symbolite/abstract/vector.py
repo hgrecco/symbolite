@@ -13,6 +13,7 @@ from __future__ import annotations
 import dataclasses
 from typing import Any, Iterable, Mapping, Sequence, overload
 
+from ..core import substitute
 from . import symbol
 from .scalar import NumberT, Scalar
 from .symbol import BaseFunction, Symbol, downcast
@@ -230,7 +231,7 @@ def vectorize(
     arr = Vector(varname)
 
     reps = {scalar_type(name): arr[ndx] for ndx, name in it}
-    return expr.subs(reps)
+    return substitute(expr, reps)
 
 
 @overload

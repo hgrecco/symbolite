@@ -13,6 +13,7 @@ from __future__ import annotations
 import dataclasses
 import functools
 import types
+from operator import attrgetter
 from typing import (
     Any,
     Callable,
@@ -31,8 +32,7 @@ from symbolite.core.util import repr_without_defaults
 from ..core import (
     Unsupported,
     evaluate,
-    evaluate_this,
-    get_impl,
+    evaluate_impl,
     substitute,
     substitute_by_name,
 )
@@ -421,8 +421,8 @@ def substitute_by_name_symbol(self: Symbol, **mapper: Any) -> Symbol:
     return self.__class__(name=self.name, namespace=self.namespace, expression=out)
 
 
-@evaluate_this.register
-def evaluate_this_symbol(self: Symbol, libsl: types.ModuleType) -> Any:
+@evaluate_impl.register
+def evaluate_impl_symbol(self: Symbol, libsl: types.ModuleType) -> Any:
     """Evaluate expression.
 
     If no implementation library is provided:
@@ -438,12 +438,12 @@ def evaluate_this_symbol(self: Symbol, libsl: types.ModuleType) -> Any:
     """
 
     if self.expression is not None:
-        return evaluate(self.expression, libsl)
+        return evaluate_impl(self.expression, libsl)
 
     if self.namespace:
         name = str(self)
 
-        value = get_impl(name, libsl)
+        value = evaluate_impl(name, libsl)
 
         if value is Unsupported:
             raise Unsupported(f"{name} is not supported in module {libsl.__name__}")
@@ -452,7 +452,7 @@ def evaluate_this_symbol(self: Symbol, libsl: types.ModuleType) -> Any:
     else:
         # User defined symbol, txry to map the class
         name = f"{self.__class__.__module__.split('.')[-1]}.{self.__class__.__name__}"
-        f = get_impl(name, libsl)
+        f = evaluate_impl(name, libsl)
 
         if f is Unsupported:
             raise Unsupported(f"{name} is not supported in module {libsl.__name__}")
@@ -516,6 +516,13 @@ class Function(BaseFunction):
         return self._call(*args, **kwargs)
 
 
+@evaluate_impl.register
+def evaluate_impl_function(
+    expr: BaseFunction, libsl: types.ModuleType
+) -> Any | Unsupported:
+    return attrgetter(str(expr))(libsl)
+
+
 def _add_parenthesis(
     self: UnaryFunction | BinaryFunction,
     arg: UnaryFunction | BinaryFunction | Symbol,
@@ -556,16 +563,20 @@ class UserFunction(Function, Generic[P, T]):
     def register_impl(self, func: Callable[P, T], libsl: types.ModuleType):
         self._impls[libsl] = func
 
-    def get_impl(self, libsl: types.ModuleType) -> Callable[P, T]:
-        impls = self._impls
-        if libsl in impls:
-            return impls[libsl]
-        elif "default" in impls:
-            return impls["default"]
-        else:
-            raise Exception(
-                f"No implementation found for {libsl.__name__} and no default implementation provided for function {self!s}"
-            )
+
+@evaluate_impl.register
+def evaluate_impl_user_function(
+    self: UserFunction, libsl: types.ModuleType
+) -> Callable[P, T]:
+    impls = self._impls
+    if libsl in impls:
+        return impls[libsl]
+    elif "default" in impls:
+        return impls["default"]
+    else:
+        raise Exception(
+            f"No implementation found for {libsl.__name__} and no default implementation provided for function {self!s}"
+        )
 
 
 @dataclasses.dataclass(frozen=True, repr=False, kw_only=True)
@@ -749,8 +760,8 @@ def substitute_by_name_expression(self: Expression, **mapper: Any) -> Expression
     return Expression(func, args, tuple(kwargs.items()))
 
 
-@evaluate_this.register
-def evaluate_this_expression(self: Expression, libsl: types.ModuleType) -> Any:
+@evaluate_impl.register
+def evaluate_impl_expression(self: Expression, libsl: types.ModuleType) -> Any:
     """Evaluate expression.
 
     If no implementation library is provided:
@@ -765,9 +776,9 @@ def evaluate_this_expression(self: Expression, libsl: types.ModuleType) -> Any:
         implementations
     """
 
-    func = get_impl(self.func, libsl)
+    func = evaluate_impl(self.func, libsl)
     args = tuple(evaluate(arg, libsl) for arg in self.args)
-    kwargs = {k: evaluate(arg, libsl) for k, arg in self.kwargs_items}
+    kwargs = {k: evaluate_impl(arg, libsl) for k, arg in self.kwargs_items}
 
     try:
         return func(*args, **kwargs)

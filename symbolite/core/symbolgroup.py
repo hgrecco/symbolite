@@ -5,7 +5,7 @@ import types
 from typing import Any, Iterable, Mapping
 
 from ..abstract.symbol import Symbol
-from . import evaluate_this, substitute, substitute_by_name
+from . import evaluate_impl, substitute, substitute_by_name
 
 
 class SymbolicList(list[Symbol]):
@@ -114,7 +114,7 @@ def subs_by_name(self: SymbolicList, **symbols: Any) -> SymbolicList:
     return self.__class__.from_iterable((se.subs_by_name(**symbols) for se in self))
 
 
-@evaluate_this.register
+@evaluate_impl.register
 def evaluate(self: SymbolicList, **libs: types.ModuleType) -> SymbolicList:
     """Evaluate expression.
 

@@ -44,6 +44,14 @@ def test_substitute_content():
         ),
     }
 
+    # TODO: This will be deprecated in future versions.
+    assert substitute_content(d, is_dependency=is_dependency) == {
+        SimpleParameter("x"): 1,
+        SimpleParameter("y"): (2 * SimpleParameter("x")).subs(
+            {SimpleParameter("x"): 1}
+        ),
+    }
+
 
 def test_eval_content():
     d = {SimpleParameter("x"): 1}

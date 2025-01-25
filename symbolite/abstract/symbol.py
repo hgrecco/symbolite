@@ -28,7 +28,14 @@ from typing_extensions import Self
 
 from symbolite.core.util import repr_without_defaults
 
-from ..core import Unsupported, evaluate, get_impl, substitute, substitute_by_name
+from ..core import (
+    Unsupported,
+    evaluate,
+    evaluate_this,
+    get_impl,
+    substitute,
+    substitute_by_name,
+)
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -67,6 +74,25 @@ class Named:
         return self.name is None
 
     def format(self, *args: Any, **kwargs: Any) -> str: ...
+
+
+def symbol_namespaces(self: Any) -> set[str]:
+    """Return a set of symbol libraries"""
+    return set(map(lambda s: s.namespace, yield_named(self, False)))
+
+
+def symbol_names(self: Any, namespace: str | None = "") -> set[str]:
+    """Return a set of symbol names (with full namespace indication).
+
+    Parameters
+    ----------
+    namespace: str or None
+        If None, all symbols will be returned independently of the namespace.
+        If a string, will compare Symbol.namespace to that.
+        Defaults to "" which is the namespace for user defined symbols.
+    """
+    ff = filter_namespace(namespace)
+    return set(map(str, filter(ff, yield_named(self, False))))
 
 
 @dataclasses.dataclass(frozen=True, repr=False)
@@ -264,14 +290,30 @@ class Symbol(Named):
             return super().__str__()
         return str(self.expression)
 
+    ##################################################
+    # TODO: This will be deprecated in future versions.
+    ##################################################
+
     def yield_named(
         self, include_anonymous: bool = False
     ) -> Generator[Named, None, None]:
-        if self.expression is None:
-            if include_anonymous or not self.is_anonymous:
-                yield self
-        else:
-            yield from self.expression.yield_named(include_anonymous)
+        yield from yield_named(self, include_anonymous)
+
+    def subs(self, mapper: Mapping[Any, Any]) -> Self:
+        """Replace symbols, functions, values, etc by others.
+
+        If multiple mappers are provided,
+            they will be used in order (using a ChainMap)
+
+        If a given object is not found in the mappers,
+            the same object will be returned.
+
+        Parameters
+        ----------
+        mappers
+            dictionary mapping source to destination objects.
+        """
+        return substitute(self, mapper)
 
     def subs_by_name(self, **mapper: Any) -> Self:
         """Replace Symbols by values or objects, matching by name.
@@ -287,12 +329,7 @@ class Symbol(Named):
         **mapper
             keyword arguments connecting names to values.
         """
-        if self.expression is None:
-            return mapper.get(str(self), self)
-        out = substitute_by_name(self.expression, **mapper)
-        if not isinstance(out, Expression):
-            return out
-        return self.__class__(name=self.name, namespace=self.namespace, expression=out)
+        return substitute_by_name(self, **mapper)
 
     def eval(self, libsl: types.ModuleType | None = None) -> Any:
         """Evaluate expression.
@@ -308,36 +345,11 @@ class Symbol(Named):
         libs
             implementations
         """
-        if libsl is None:
-            return evaluate(self)
-
-        if self.expression is not None:
-            return evaluate(self.expression, libsl)
-
-        if self.namespace:
-            name = str(self)
-
-            value = get_impl(name, libsl)
-
-            if value is Unsupported:
-                raise Unsupported(f"{name} is not supported in module {libsl.__name__}")
-
-            return value
-        else:
-            # User defined symbol, txry to map the class
-            name = (
-                f"{self.__class__.__module__.split('.')[-1]}.{self.__class__.__name__}"
-            )
-            f = get_impl(name, libsl)
-
-            if f is Unsupported:
-                raise Unsupported(f"{name} is not supported in module {libsl.__name__}")
-
-            return f(self.name)
+        return evaluate(self, libsl)
 
     def symbol_namespaces(self) -> set[str]:
         """Return a set of symbol libraries"""
-        return set(map(lambda s: s.namespace, self.yield_named(False)))
+        return symbol_namespaces(self)
 
     def symbol_names(self, namespace: str | None = "") -> set[str]:
         """Return a set of symbol names (with full namespace indication).
@@ -349,8 +361,18 @@ class Symbol(Named):
             If a string, will compare Symbol.namespace to that.
             Defaults to "" which is the namespace for user defined symbols.
         """
-        ff = filter_namespace(namespace)
-        return set(map(str, filter(ff, self.yield_named(False))))
+        return symbol_names(self, namespace)
+
+
+@functools.singledispatch
+def yield_named(
+    self: Symbol, include_anonymous: bool = False
+) -> Generator[Named, None, None]:
+    if self.expression is None:
+        if include_anonymous or not self.is_anonymous:
+            yield self
+    else:
+        yield from yield_named(self.expression, include_anonymous)
 
 
 @substitute.register
@@ -374,6 +396,68 @@ def substitute_symbol(self: Symbol, mapper: Mapping[Any, Any]) -> Symbol:
     if not isinstance(out, Expression):
         return out
     return self.__class__(name=self.name, namespace=self.namespace, expression=out)
+
+
+@substitute_by_name.register
+def substitute_by_name_symbol(self: Symbol, **mapper: Any) -> Symbol:
+    """Replace Symbols by values or objects, matching by name.
+
+    If multiple mappers are provided,
+        they will be used in order (using a ChainMap)
+
+    If a given object is not found in the mappers,
+        the same object will be returned.
+
+    Parameters
+    ----------
+    **mapper
+        keyword arguments connecting names to values.
+    """
+    if self.expression is None:
+        return mapper.get(str(self), self)
+    out = substitute_by_name(self.expression, **mapper)
+    if not isinstance(out, Expression):
+        return out
+    return self.__class__(name=self.name, namespace=self.namespace, expression=out)
+
+
+@evaluate_this.register
+def evaluate_this_symbol(self: Symbol, libsl: types.ModuleType) -> Any:
+    """Evaluate expression.
+
+    If no implementation library is provided:
+    1. 'libsl' will be looked up going back though the stack
+        until is found.
+    2. If still not found, the implementation using the python
+        math module will be used (and a warning will be issued).
+
+    Parameters
+    ----------
+    libs
+        implementations
+    """
+
+    if self.expression is not None:
+        return evaluate(self.expression, libsl)
+
+    if self.namespace:
+        name = str(self)
+
+        value = get_impl(name, libsl)
+
+        if value is Unsupported:
+            raise Unsupported(f"{name} is not supported in module {libsl.__name__}")
+
+        return value
+    else:
+        # User defined symbol, txry to map the class
+        name = f"{self.__class__.__module__.split('.')[-1]}.{self.__class__.__name__}"
+        f = get_impl(name, libsl)
+
+        if f is Unsupported:
+            raise Unsupported(f"{name} is not supported in module {libsl.__name__}")
+
+        return f(self.name)
 
 
 S = TypeVar("S", bound=Symbol)
@@ -535,19 +619,30 @@ class Expression:
     def __repr__(self) -> str:
         return repr_without_defaults(self)
 
+    ##################################################
+    # TODO: This will be deprecated in future versions.
+    ##################################################
+
     def yield_named(
         self, include_anonymous: bool = False
     ) -> Generator[Named, None, None]:
-        if include_anonymous or not self.func.is_anonymous:
-            yield self.func
+        yield from yield_named(self, include_anonymous)
 
-        for arg in self.args:
-            if isinstance(arg, Symbol):
-                yield from arg.yield_named(include_anonymous)
+    def subs(self, mapper: Mapping[Any, Any]) -> Self:
+        """Replace symbols, functions, values, etc by others.
 
-        for _, v in self.kwargs_items:
-            if isinstance(v, Symbol):
-                yield from v.yield_named(include_anonymous)
+        If multiple mappers are provided,
+            they will be used in order (using a ChainMap)
+
+        If a given object is not found in the mappers,
+            the same object will be returned.
+
+        Parameters
+        ----------
+        mappers
+            dictionary mapping source to destination objects.
+        """
+        return substitute(self, mapper)
 
     def subs_by_name(self, **mapper: Any) -> Self:
         """Replace symbols, functions, values, etc by others.
@@ -563,11 +658,7 @@ class Expression:
         mappers
             dictionary mapping source to destination objects.
         """
-        func = mapper.get(str(self.func), self.func)
-        args = tuple(substitute_by_name(arg, **mapper) for arg in self.args)
-        kwargs = {k: substitute_by_name(arg, **mapper) for k, arg in self.kwargs_items}
-
-        return Expression(func, args, tuple(kwargs.items()))
+        return substitute_by_name(self, **mapper)
 
     def eval(self, libsl: types.ModuleType | None = None) -> Any:
         """Evaluate expression.
@@ -583,19 +674,7 @@ class Expression:
         libs
             implementations
         """
-
-        func = get_impl(self.func, libsl)
-        args = tuple(evaluate(arg, libsl) for arg in self.args)
-        kwargs = {k: evaluate(arg, libsl) for k, arg in self.kwargs_items}
-
-        try:
-            return func(*args, **kwargs)
-        except Exception as ex:
-            try:
-                ex.add_note(f"While evaluating {func}(*{args}, **{kwargs}): {ex}")
-            except AttributeError:
-                pass
-            raise ex
+        return evaluate(self, libsl)
 
     def symbol_names(self, namespace: str | None = "") -> set[str]:
         """Return a set of symbol names (with full namespace indication).
@@ -607,8 +686,23 @@ class Expression:
             If a string, will compare Symbol.namespace to that.
             Defaults to "" which is the namespace for user defined symbols.
         """
-        ff = filter_namespace(namespace)
-        return set(map(str, filter(ff, self.yield_named(False))))
+        return symbol_names(self)
+
+
+@yield_named.register
+def yield_named_expression(
+    self: Expression, include_anonymous: bool = False
+) -> Generator[Named, None, None]:
+    if include_anonymous or not self.func.is_anonymous:
+        yield self.func
+
+    for arg in self.args:
+        if isinstance(arg, Symbol):
+            yield from yield_named(arg, include_anonymous)
+
+    for _, v in self.kwargs_items:
+        if isinstance(v, Symbol):
+            yield from yield_named(v, include_anonymous)
 
 
 @substitute.register
@@ -631,6 +725,58 @@ def substitute_expression(self: Expression, mapper: Mapping[Any, Any]) -> Expres
     kwargs = {k: substitute(arg, mapper) for k, arg in self.kwargs_items}
 
     return Expression(func, args, tuple(kwargs.items()))
+
+
+@substitute_by_name.register
+def substitute_by_name_expression(self: Expression, **mapper: Any) -> Expression:
+    """Replace symbols, functions, values, etc by others.
+
+    If multiple mappers are provided,
+        they will be used in order (using a ChainMap)
+
+    If a given object is not found in the mappers,
+        the same object will be returned.
+
+    Parameters
+    ----------
+    mappers
+        dictionary mapping source to destination objects.
+    """
+    func = mapper.get(str(self.func), self.func)
+    args = tuple(substitute_by_name(arg, **mapper) for arg in self.args)
+    kwargs = {k: substitute_by_name(arg, **mapper) for k, arg in self.kwargs_items}
+
+    return Expression(func, args, tuple(kwargs.items()))
+
+
+@evaluate_this.register
+def evaluate_this_expression(self: Expression, libsl: types.ModuleType) -> Any:
+    """Evaluate expression.
+
+    If no implementation library is provided:
+    1. 'libsl' will be looked up going back though the stack
+        until is found.
+    2. If still not found, the implementation using the python
+        math module will be used (and a warning will be issued).
+
+    Parameters
+    ----------
+    libs
+        implementations
+    """
+
+    func = get_impl(self.func, libsl)
+    args = tuple(evaluate(arg, libsl) for arg in self.args)
+    kwargs = {k: evaluate(arg, libsl) for k, arg in self.kwargs_items}
+
+    try:
+        return func(*args, **kwargs)
+    except Exception as ex:
+        try:
+            ex.add_note(f"While evaluating {func}(*{args}, **{kwargs}): {ex}")
+        except AttributeError:
+            pass
+        raise ex
 
 
 # Comparison methods (not operator)

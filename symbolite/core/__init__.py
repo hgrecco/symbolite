@@ -117,6 +117,20 @@ def inspect(expr: Any) -> dict[Any, int]:
     return {expr: 1}
 
 
+@singledispatch
+def evaluate_this(expr: Any, libsl: types.ModuleType) -> Any:
+    """Evaluate expression.
+
+    Parameters
+    ----------
+    expr
+        symbolic expression.
+    libsl
+        implementation module.
+    """
+    return expr
+
+
 def evaluate(expr: Any, libsl: types.ModuleType | None = None) -> Any:
     """Evaluate expression.
 
@@ -134,9 +148,7 @@ def evaluate(expr: Any, libsl: types.ModuleType | None = None) -> Any:
         warnings.warn("No libsl provided, defaulting to Python standard library.")
         from ..impl import libstd as libsl
 
-    if hasattr(expr, "eval"):
-        return expr.eval(libsl)
-    return expr
+    return evaluate_this(expr, libsl)
 
 
 @singledispatch
@@ -153,6 +165,7 @@ def substitute(expr: Any, replacements: Mapping[Any, Any]) -> Any:
     return replacements.get(expr, expr)
 
 
+@singledispatch
 def substitute_by_name(expr: Any, **replacements: Any) -> Any:
     """Replace Symbols by values or objects, matching by name.
 

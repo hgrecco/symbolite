@@ -5,13 +5,29 @@ import types
 from typing import Any, Iterable, Mapping
 
 from ..abstract.symbol import Symbol
-from . import substitute
+from . import evaluate_this, substitute, substitute_by_name
 
 
 class SymbolicList(list[Symbol]):
     @classmethod
     def from_iterable(cls, it: Iterable[Symbol]):
         return cls(it)
+
+    def subs(self, mapper: Mapping[Any, Any]) -> SymbolicList:
+        """Replace symbols, functions, values, etc by others.
+
+        If multiple mappers are provided,
+            they will be used in order (using a ChainMap)
+
+        If a given object is not found in the mappers,
+            the same object will be returned.
+
+        Parameters
+        ----------
+        mappers
+            dictionary mapping source to destination objects.
+        """
+        return substitute(self, mapper)
 
     def subs_by_name(self, **symbols: Any) -> SymbolicList:
         """Replace Symbols by values or objects, matching by name.
@@ -27,7 +43,7 @@ class SymbolicList(list[Symbol]):
         **symbols
             keyword arguments connecting names to values.
         """
-        return self.__class__.from_iterable((se.subs_by_name(**symbols) for se in self))
+        return substitute_by_name(self, **symbols)
 
     def eval(self, **libs: types.ModuleType) -> SymbolicList:
         """Evaluate expression.
@@ -43,7 +59,6 @@ class SymbolicList(list[Symbol]):
         libs
             implementations
         """
-
         return self.__class__.from_iterable(se.eval(**libs) for se in self)
 
     def symbol_names(self, namespace: str | None = "") -> set[str]:
@@ -79,6 +94,43 @@ def substitute_list(self: SymbolicList, *mappers: Mapping[Any, Any]) -> Symbolic
         dictionaries mapping source to destination objects.
     """
     return self.__class__.from_iterable((substitute(se, *mappers) for se in self))
+
+
+@substitute_by_name.register
+def subs_by_name(self: SymbolicList, **symbols: Any) -> SymbolicList:
+    """Replace Symbols by values or objects, matching by name.
+
+    If multiple mappers are provided,
+        they will be used in order (using a ChainMap)
+
+    If a given object is not found in the mappers,
+        the same object will be returned.
+
+    Parameters
+    ----------
+    **symbols
+        keyword arguments connecting names to values.
+    """
+    return self.__class__.from_iterable((se.subs_by_name(**symbols) for se in self))
+
+
+@evaluate_this.register
+def evaluate(self: SymbolicList, **libs: types.ModuleType) -> SymbolicList:
+    """Evaluate expression.
+
+    If no implementation library is provided:
+    1. 'libsl' will be looked up going back though the stack
+        until is found.
+    2. If still not found, the implementation using the python
+        math module will be used (and a warning will be issued).
+
+    Parameters
+    ----------
+    libs
+        implementations
+    """
+
+    return self.__class__.from_iterable(se.eval(**libs) for se in self)
 
 
 class SymbolicNamespace:

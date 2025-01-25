@@ -90,6 +90,9 @@ def test_str(expr: Symbol, result: Symbol):
 def test_subs(expr: Symbol, result: Symbol):
     assert substitute(expr, {y: z}) == result
 
+    # TODO: This will be deprecated in future versions.
+    assert expr.subs({y: z}) == result
+
 
 @pytest.mark.parametrize(
     "expr,result",

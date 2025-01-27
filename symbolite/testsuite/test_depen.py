@@ -1,4 +1,3 @@
-from types import ModuleType
 from typing import Any
 
 import pytest
@@ -12,21 +11,9 @@ from symbolite.impl import libstd
 class SimpleVariable(scalar.Scalar):
     """Special type of Scalar that is evaluated to itself."""
 
-    def __repr__(self):
-        return self.name
-
-    def eval(self, libsl: ModuleType | None = None):
-        return self
-
 
 class SimpleParameter(scalar.Scalar):
     """Special type of Scalar that is evaluated to itself."""
-
-    def __repr__(self):
-        return self.name
-
-    def eval(self, libsl: ModuleType | None = None):
-        return self
 
 
 def is_dependency(x: Any) -> bool:
@@ -41,14 +28,6 @@ def test_substitute_content():
         SimpleParameter("y"): substitute(
             2 * SimpleParameter("x"),
             {SimpleParameter("x"): 1},
-        ),
-    }
-
-    # TODO: This will be deprecated in future versions.
-    assert substitute_content(d, is_dependency=is_dependency) == {
-        SimpleParameter("x"): 1,
-        SimpleParameter("y"): (2 * SimpleParameter("x")).subs(
-            {SimpleParameter("x"): 1}
         ),
     }
 

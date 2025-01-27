@@ -107,8 +107,10 @@ def inspect(expr: Any) -> dict[Any, int]:
     expr
         symbolic expression.
     """
-    if hasattr(expr, "yield_named"):
-        cnt = collections.Counter[Any](expr.yield_named())
+    from ..abstract.symbol import yield_named
+
+    cnt = collections.Counter[Any](yield_named(expr))
+    if cnt:
         return dict(cnt)
     return {expr: 1}
 
@@ -172,9 +174,6 @@ def substitute_by_name(expr: Any, **replacements: Any) -> Any:
     replacements
         replacement dictionary.
     """
-
-    if hasattr(expr, "subs_by_name"):
-        return expr.subs_by_name(**replacements)
     return expr
 
 

@@ -290,89 +290,19 @@ class Symbol(Named):
             return super().__str__()
         return str(self.expression)
 
-    ##################################################
-    # TODO: This will be deprecated in future versions.
-    ##################################################
-
-    def yield_named(
-        self, include_anonymous: bool = False
-    ) -> Generator[Named, None, None]:
-        yield from yield_named(self, include_anonymous)
-
-    def subs(self, mapper: Mapping[Any, Any]) -> Self:
-        """Replace symbols, functions, values, etc by others.
-
-        If multiple mappers are provided,
-            they will be used in order (using a ChainMap)
-
-        If a given object is not found in the mappers,
-            the same object will be returned.
-
-        Parameters
-        ----------
-        mappers
-            dictionary mapping source to destination objects.
-        """
-        return substitute(self, mapper)
-
-    def subs_by_name(self, **mapper: Any) -> Self:
-        """Replace Symbols by values or objects, matching by name.
-
-        If multiple mappers are provided,
-            they will be used in order (using a ChainMap)
-
-        If a given object is not found in the mappers,
-            the same object will be returned.
-
-        Parameters
-        ----------
-        **mapper
-            keyword arguments connecting names to values.
-        """
-        return substitute_by_name(self, **mapper)
-
-    def eval(self, libsl: types.ModuleType | None = None) -> Any:
-        """Evaluate expression.
-
-        If no implementation library is provided:
-        1. 'libsl' will be looked up going back though the stack
-           until is found.
-        2. If still not found, the implementation using the python
-           math module will be used (and a warning will be issued).
-
-        Parameters
-        ----------
-        libs
-            implementations
-        """
-        return evaluate(self, libsl)
-
-    def symbol_namespaces(self) -> set[str]:
-        """Return a set of symbol libraries"""
-        return symbol_namespaces(self)
-
-    def symbol_names(self, namespace: str | None = "") -> set[str]:
-        """Return a set of symbol names (with full namespace indication).
-
-        Parameters
-        ----------
-        namespace: str or None
-            If None, all symbols will be returned independently of the namespace.
-            If a string, will compare Symbol.namespace to that.
-            Defaults to "" which is the namespace for user defined symbols.
-        """
-        return symbol_names(self, namespace)
-
 
 @functools.singledispatch
 def yield_named(
     self: Symbol, include_anonymous: bool = False
 ) -> Generator[Named, None, None]:
-    if self.expression is None:
-        if include_anonymous or not self.is_anonymous:
-            yield self
-    else:
-        yield from yield_named(self.expression, include_anonymous)
+    try:
+        if self.expression is None:
+            if include_anonymous or not self.is_anonymous:
+                yield self
+        else:
+            yield from yield_named(self.expression, include_anonymous)
+    except Exception:
+        return self
 
 
 @substitute.register
@@ -629,75 +559,6 @@ class Expression:
 
     def __repr__(self) -> str:
         return repr_without_defaults(self)
-
-    ##################################################
-    # TODO: This will be deprecated in future versions.
-    ##################################################
-
-    def yield_named(
-        self, include_anonymous: bool = False
-    ) -> Generator[Named, None, None]:
-        yield from yield_named(self, include_anonymous)
-
-    def subs(self, mapper: Mapping[Any, Any]) -> Self:
-        """Replace symbols, functions, values, etc by others.
-
-        If multiple mappers are provided,
-            they will be used in order (using a ChainMap)
-
-        If a given object is not found in the mappers,
-            the same object will be returned.
-
-        Parameters
-        ----------
-        mappers
-            dictionary mapping source to destination objects.
-        """
-        return substitute(self, mapper)
-
-    def subs_by_name(self, **mapper: Any) -> Self:
-        """Replace symbols, functions, values, etc by others.
-
-        If multiple mappers are provided,
-            they will be used in order (using a ChainMap)
-
-        If a given object is not found in the mappers,
-            the same object will be returned.
-
-        Parameters
-        ----------
-        mappers
-            dictionary mapping source to destination objects.
-        """
-        return substitute_by_name(self, **mapper)
-
-    def eval(self, libsl: types.ModuleType | None = None) -> Any:
-        """Evaluate expression.
-
-        If no implementation library is provided:
-        1. 'libsl' will be looked up going back though the stack
-           until is found.
-        2. If still not found, the implementation using the python
-           math module will be used (and a warning will be issued).
-
-        Parameters
-        ----------
-        libs
-            implementations
-        """
-        return evaluate(self, libsl)
-
-    def symbol_names(self, namespace: str | None = "") -> set[str]:
-        """Return a set of symbol names (with full namespace indication).
-
-        Parameters
-        ----------
-        namespace: str or None
-            If None, all symbols will be returned independently of the namespace.
-            If a string, will compare Symbol.namespace to that.
-            Defaults to "" which is the namespace for user defined symbols.
-        """
-        return symbol_names(self)
 
 
 @yield_named.register

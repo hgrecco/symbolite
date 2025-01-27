@@ -15,6 +15,7 @@ will normally do in Python.
 
 ```python
 >>> from symbolite import Symbol
+>>> from symbolite.core import substitute_by_name, evaluate
 >>> x = Symbol("x")
 >>> y = Symbol("y")
 >>> expr1 = x + 3 * y
@@ -26,7 +27,7 @@ An expression is just an unnamed Symbol.
 You can easily replace the symbols by the desired value.
 
 ```python
->>> expr2 = expr1.subs_by_name(x=5, y=2)
+>>> expr2 = substitute_by_name(expr1, x=5, y=2)
 >>> print(expr2)
 5 + 3 * 2
 ```
@@ -34,7 +35,7 @@ You can easily replace the symbols by the desired value.
 The output is still a symbolic expression, which you can evaluate:
 
 ```python
->>> expr2.eval()
+>>> evaluate(expr2)
 11
 ```
 
@@ -46,7 +47,7 @@ You can avoid this warning by explicitely providing an `libsl` implementation.
 
 ```python
 >>> from symbolite.impl import libstd
->>> expr2.eval(libstd)
+>>> evaluate(expr2, libstd)
 11
 ```
 
@@ -54,7 +55,7 @@ You can also import it with the right name and it will be found
 
 ```python
 >>> from symbolite.impl import libstd as libsl
->>> expr2.eval()
+>>> evaluate(expr2)
 11
 ```
 
@@ -95,9 +96,9 @@ Notice that functions are named according to the python math module.
 Again, this is a symbolic expression until evaluated.
 
 ```python
->>> expr3.eval()
+>>> evaluate(expr3)
 2.6327476856711
->>> expr4.eval()
+>>> evaluate(expr4)
 18.0
 ```
 
@@ -108,10 +109,10 @@ Three other implementations are provided:
 
 ```python
 >>> from symbolite.impl import libnumpy
->>> expr3.eval(libsl=libnumpy)
+>>> evaluate(expr3, libsl=libnumpy)
 np.float64(2.6327476856711183)
 >>> from symbolite.impl import libsympy
->>> expr3.eval(libsl=libsympy)
+>>> evaluate(expr3, libsl=libsympy)
 2.6327476856711
 ```
 
@@ -124,7 +125,7 @@ like SymPy that contains a Scalar object you can still evaluate.
 
 ```python
 >>> from symbolite.impl import libsympy as libsl
->>> (3. * scalar.cos(x).eval(libsl))
+>>> evaluate(3. * scalar.cos(x), libsl)
 3.0*cos(x)
 ```
 
@@ -142,7 +143,7 @@ We provide a simple way to call user defined functions.
 >>> uf = UserFunction.from_function(abs_times_two)
 >>> uf
 UserFunction(name='abs_times_two', namespace='user')
->>> uf(-1).eval()
+>>> evaluate(uf(-1))
 2
 ```
 
@@ -152,7 +153,7 @@ and you can register implementations for other backends:
 >>> def np_abs_times_two(x: float) -> float:
 ...     return 2 * np.abs(x)
 >>> uf.register_impl(libnumpy, np_abs_times_two)
->>> uf(-1).eval(libnumpy)
+>>> evaluate(uf(-1), libnumpy)
 2
 ```
 

@@ -4,75 +4,14 @@ import dataclasses
 import types
 from typing import Any, Iterable, Mapping
 
-from ..abstract.symbol import Symbol
-from . import evaluate_impl, substitute, substitute_by_name
+from ..abstract.symbol import Symbol, yield_named
+from . import evaluate, evaluate_impl, substitute, substitute_by_name
 
 
 class SymbolicList(list[Symbol]):
     @classmethod
     def from_iterable(cls, it: Iterable[Symbol]):
         return cls(it)
-
-    def subs(self, mapper: Mapping[Any, Any]) -> SymbolicList:
-        """Replace symbols, functions, values, etc by others.
-
-        If multiple mappers are provided,
-            they will be used in order (using a ChainMap)
-
-        If a given object is not found in the mappers,
-            the same object will be returned.
-
-        Parameters
-        ----------
-        mappers
-            dictionary mapping source to destination objects.
-        """
-        return substitute(self, mapper)
-
-    def subs_by_name(self, **symbols: Any) -> SymbolicList:
-        """Replace Symbols by values or objects, matching by name.
-
-        If multiple mappers are provided,
-            they will be used in order (using a ChainMap)
-
-        If a given object is not found in the mappers,
-            the same object will be returned.
-
-        Parameters
-        ----------
-        **symbols
-            keyword arguments connecting names to values.
-        """
-        return substitute_by_name(self, **symbols)
-
-    def eval(self, **libs: types.ModuleType) -> SymbolicList:
-        """Evaluate expression.
-
-        If no implementation library is provided:
-        1. 'libsl' will be looked up going back though the stack
-           until is found.
-        2. If still not found, the implementation using the python
-           math module will be used (and a warning will be issued).
-
-        Parameters
-        ----------
-        libs
-            implementations
-        """
-        return self.__class__.from_iterable(se.eval(**libs) for se in self)
-
-    def symbol_names(self, namespace: str | None = "") -> set[str]:
-        """Return a set of symbol names (with full namespace indication).
-
-        Parameters
-        ----------
-        namespace: str or None
-            If None, all symbols will be returned independently of the namespace.
-            If a string, will compare Symbol.namespace to that.
-            Defaults to "" which is the namespace for user defined symbols.
-        """
-        s: set[str] = set()
-        return s.union(*(se.symbol_names(namespace) for se in self))
 
     def __str__(self):
         return "\n".join(str(se) for se in self)
@@ -97,7 +36,9 @@ def substitute_list(self: SymbolicList, *mappers: Mapping[Any, Any]) -> Symbolic
 
 
 @substitute_by_name.register
-def subs_by_name(self: SymbolicList, **symbols: Any) -> SymbolicList:
+def substitute_by_name_symbolic_list(
+    self: SymbolicList, **symbols: Any
+) -> SymbolicList:
     """Replace Symbols by values or objects, matching by name.
 
     If multiple mappers are provided,
@@ -111,11 +52,15 @@ def subs_by_name(self: SymbolicList, **symbols: Any) -> SymbolicList:
     **symbols
         keyword arguments connecting names to values.
     """
-    return self.__class__.from_iterable((se.subs_by_name(**symbols) for se in self))
+    return self.__class__.from_iterable(
+        (substitute_by_name(se, **symbols) for se in self)
+    )
 
 
 @evaluate_impl.register
-def evaluate(self: SymbolicList, **libs: types.ModuleType) -> SymbolicList:
+def evaluate_impl_symbolic_list(
+    self: SymbolicList, **libs: types.ModuleType
+) -> SymbolicList:
     """Evaluate expression.
 
     If no implementation library is provided:
@@ -130,15 +75,19 @@ def evaluate(self: SymbolicList, **libs: types.ModuleType) -> SymbolicList:
         implementations
     """
 
-    return self.__class__.from_iterable(se.eval(**libs) for se in self)
+    return self.__class__.from_iterable(evaluate(se, **libs) for se in self)
 
 
 class SymbolicNamespace:
     expressions: SymbolicList = SymbolicList()
 
+    # TODO: remove this.
     @classmethod
     def symbol_names(cls, namespace: str | None = "") -> set[str]:
-        return cls.expressions.symbol_names(namespace)
+        out = set()
+        for expr in cls.expressions:
+            out.update((named.name for named in yield_named(expr, namespace)))
+        return out
 
 
 @dataclasses.dataclass(frozen=True, repr=False)

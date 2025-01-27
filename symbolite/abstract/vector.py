@@ -17,6 +17,7 @@ from ..core import substitute
 from . import symbol
 from .scalar import NumberT, Scalar
 from .symbol import BaseFunction, Symbol, downcast
+from .symbol import symbol_names as _symbol_names
 
 VectorT = Iterable[NumberT]
 
@@ -287,9 +288,9 @@ def auto_vectorize(
         expr = tuple(expr)
         out = set[str]()
         for symbol in expr:
-            out.update(symbol.symbol_names(""))
+            out.update(_symbol_names(symbol, ""))
         symbol_names = tuple(sorted(out))
         return symbol_names, vectorize(expr, symbol_names, varname, scalar_type)
     else:
-        symbol_names = tuple(sorted(expr.symbol_names("")))
+        symbol_names = tuple(sorted(_symbol_names(expr, "")))
         return symbol_names, vectorize(expr, symbol_names, varname, scalar_type)

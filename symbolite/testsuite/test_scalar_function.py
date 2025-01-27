@@ -4,7 +4,8 @@ import types
 import pytest
 
 from symbolite import Symbol, scalar
-from symbolite.core import as_function
+from symbolite.abstract.symbol import symbol_names
+from symbolite.core import as_function, evaluate, substitute_by_name
 from symbolite.impl import get_all_implementations
 
 all_impl = get_all_implementations()
@@ -40,7 +41,7 @@ def test_typing():
 def test_known_symbols(expr: Symbol, libsl: types.ModuleType):
     f = as_function(expr, "my_function", ("x", "y"), libsl=libsl)
     assert f.__name__ == "my_function"
-    assert expr.subs_by_name(x=2, y=3).eval(libsl=libsl) == f(2, 3)
+    assert evaluate(substitute_by_name(expr, x=2, y=3), libsl=libsl) == f(2, 3)
     assert tuple(inspect.signature(f).parameters.keys()) == ("x", "y")
 
 
@@ -56,7 +57,7 @@ def test_lib_symbols(expr: Symbol, replaced: Symbol, libsl: types.ModuleType):
     f = as_function(expr, "my_function", ("x", "y"), libsl=libsl)
     value = f(2, 3)
     assert f.__name__ == "my_function"
-    assert expr.subs_by_name(x=2, y=3).eval(libsl=libsl) == value
+    assert evaluate(substitute_by_name(expr, x=2, y=3), libsl=libsl) == value
     assert tuple(inspect.signature(f).parameters.keys()) == ("x", "y")
 
 
@@ -84,4 +85,4 @@ def test_lib_symbols(expr: Symbol, replaced: Symbol, libsl: types.ModuleType):
     ],
 )
 def test_list_symbols(expr: Symbol, namespace: str | None, result: Symbol):
-    assert expr.symbol_names(namespace) == result
+    assert symbol_names(expr, namespace) == result

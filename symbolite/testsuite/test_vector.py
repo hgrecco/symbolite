@@ -4,7 +4,8 @@ from typing import Any
 import pytest
 
 from symbolite import Symbol, scalar, vector
-from symbolite.core import Unsupported
+from symbolite.abstract.symbol import symbol_names
+from symbolite.core import Unsupported, evaluate, substitute_by_name
 from symbolite.impl import get_all_implementations
 
 all_impl = get_all_implementations()
@@ -38,15 +39,15 @@ def test_vector():
 
 
 def test_methods():
-    assert vec.subs_by_name(vec=(1, 2, 3)) == (1, 2, 3)
-    assert vec[1].subs_by_name(vec=(1, 2, 3)).eval() == 2
-    assert vec.symbol_names() == {
+    assert substitute_by_name(vec, vec=(1, 2, 3)) == (1, 2, 3)
+    assert evaluate(substitute_by_name(vec[1], vec=(1, 2, 3))) == 2
+    assert symbol_names(vec) == {
         "vec",
     }
-    assert vec[1].symbol_names() == {
+    assert symbol_names(vec[1]) == {
         "vec",
     }
-    assert (vec[1] + vec[0]).symbol_names() == {
+    assert symbol_names(vec[1] + vec[0]) == {
         "vec",
     }
 
@@ -65,12 +66,12 @@ def test_impl(libsl: types.ModuleType):
 
     try:
         expr = vector.sum(v)
-        assert expr.subs_by_name(v=v1234).eval(libsl=libsl) == 10
+        assert evaluate(substitute_by_name(expr, v=v1234), libsl=libsl) == 10
     except Unsupported:
         pass
 
     expr = vector.prod(v)
-    assert expr.subs_by_name(v=v1234).eval(libsl=libsl) == 24
+    assert evaluate(substitute_by_name(expr, v=v1234), libsl=libsl) == 24
 
 
 @requires_numpy
@@ -85,11 +86,13 @@ def test_impl_numpy():
     v = np.asarray((1, 2, 3))
 
     expr1 = vector.Vector("vec") + 1
-    assert np.allclose(expr1.subs_by_name(vec=v).eval(), v + 1)
+    assert np.allclose(evaluate(substitute_by_name(expr1, vec=v)), v + 1)
 
     expr2 = scalar.cos(vector.sum(vector.Vector("vec")))
 
-    assert np.allclose(expr2.subs_by_name(vec=v).eval(libsl=libsl), np.cos(np.sum(v)))
+    assert np.allclose(
+        evaluate(substitute_by_name(expr2, vec=v), libsl=libsl), np.cos(np.sum(v))
+    )
 
 
 @requires_sympy
@@ -103,8 +106,8 @@ def test_impl_sympy():
 
     vec = vector.Vector("vec")
     syarr = sy.IndexedBase("vec")
-    assert vec.eval(libsl=libsl) == syarr
-    assert vec[1].eval(libsl=libsl) == syarr[1]
+    assert evaluate(vec, libsl=libsl) == syarr
+    assert evaluate(vec[1], libsl=libsl) == syarr[1]
 
 
 @pytest.mark.parametrize(

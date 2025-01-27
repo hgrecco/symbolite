@@ -1,8 +1,8 @@
 import pytest
 
 from symbolite import Function, Symbol
-from symbolite.abstract.symbol import Expression
-from symbolite.core import substitute
+from symbolite.abstract.symbol import Expression, symbol_names
+from symbolite.core import evaluate, substitute, substitute_by_name
 from symbolite.impl import find_module_in_stack
 
 x, y, z = map(Symbol, "x y z".split())
@@ -90,9 +90,6 @@ def test_str(expr: Symbol, result: Symbol):
 def test_subs(expr: Symbol, result: Symbol):
     assert substitute(expr, {y: z}) == result
 
-    # TODO: This will be deprecated in future versions.
-    assert expr.subs({y: z}) == result
-
 
 @pytest.mark.parametrize(
     "expr,result",
@@ -102,7 +99,7 @@ def test_subs(expr: Symbol, result: Symbol):
     ],
 )
 def test_subs_by_name(expr: Symbol, result: Symbol):
-    assert expr.subs_by_name(y=z) == result
+    assert substitute_by_name(expr, y=z) == result
 
 
 @pytest.mark.parametrize(
@@ -115,7 +112,7 @@ def test_subs_by_name(expr: Symbol, result: Symbol):
     ],
 )
 def test_symbol_names(expr: Symbol, result: set[str]):
-    assert expr.symbol_names() == result
+    assert symbol_names(expr) == result
 
 
 @pytest.mark.parametrize(
@@ -128,7 +125,7 @@ def test_symbol_names(expr: Symbol, result: set[str]):
     ],
 )
 def test_symbol_names_ops(expr: Symbol, result: set[str]):
-    assert expr.symbol_names(None) == result
+    assert symbol_names(expr, None) == result
 
 
 @pytest.mark.parametrize(
@@ -144,7 +141,7 @@ def test_symbol_names_ops(expr: Symbol, result: set[str]):
     ],
 )
 def test_symbol_names_namespace(expr: Symbol, result: Symbol):
-    assert expr.symbol_names(namespace="lib") == result
+    assert symbol_names(expr, namespace="lib") == result
 
 
 class Scalar(Symbol):
@@ -159,7 +156,7 @@ class Scalar(Symbol):
     ],
 )
 def test_eval_str(expr: Symbol, result: Symbol):
-    assert eval(str(expr.subs_by_name(x=1, y=3))) == result
+    assert eval(str(substitute_by_name(expr, x=1, y=3))) == result
 
 
 @pytest.mark.parametrize(
@@ -170,7 +167,7 @@ def test_eval_str(expr: Symbol, result: Symbol):
     ],
 )
 def test_eval(expr: Symbol, result: Symbol):
-    assert expr.subs_by_name(x=1, y=3).eval() == result
+    assert evaluate(substitute_by_name(expr, x=1, y=3)) == result
 
 
 def test_find_libs_in_stack():

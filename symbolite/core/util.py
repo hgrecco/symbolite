@@ -75,7 +75,6 @@ def substitute_content(
 ) -> dict[TH, Any]:
     dependencies = compute_dependencies(content, is_dependency)
     layers = solve_dependencies(dependencies)
-
     out: dict[TH, Any] = {}
     for layer in layers:
         for item in layer:

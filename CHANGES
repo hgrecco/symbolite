@@ -1,6 +1,17 @@
 Symbolite Changelog
 ===================
 
+0.7.0 (2025-01-27)
+------------------
+
+- Prepare to remove .subs .subs_by_name, .eval, .symbol_names, .yield_named, .symbol_namespaces.
+- Migrate to pixi and improve package infrastructure.
+- Improve types and typing in dunder methods.
+- Hide private attributes and attributes with default values from dataclass repr.
+- Add UserFunction.
+- (breaking change) subs and subs_by_name should no eval functions, just replace.
+
+
 0.6.0 (2024-01-19)
 ------------------
 

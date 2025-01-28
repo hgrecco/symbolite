@@ -1,4 +1,5 @@
 from symbolite import Symbol
+from symbolite.core.named import symbol_names
 from symbolite.core.symbolgroup import AutoSymbol, SymbolicNamespace
 
 
@@ -11,7 +12,7 @@ def test_naming():
     assert isinstance(N.y, Symbol)
     assert N.x.name == "x"
     assert N.y.name == "y"
-    assert N.symbol_names() == {"x", "y"}
+    assert symbol_names(N) == {"x", "y"}
 
 
 def test_eq():

@@ -12,9 +12,10 @@ from __future__ import annotations
 
 import dataclasses
 import types
-from typing import Any, Iterable, Mapping
+from typing import Any, Generator, Iterable, Mapping
 
-from ..abstract.symbol import Symbol, yield_named
+from ..abstract.symbol import Symbol
+from ..core.named import Named, yield_named
 from .operations import evaluate_impl, substitute, substitute_by_name
 
 
@@ -28,72 +29,53 @@ class SymbolicList(list[Symbol]):
 
 
 @substitute.register
-def _(self: SymbolicList, *mappers: Mapping[Any, Any]) -> SymbolicList:
-    """Replace symbols, functions, values, etc by others.
-
-    If multiple mappers are provided,
-        they will be used in order (using a ChainMap)
-
-    If a given object is not found in the mappers,
-        the same object will be returned.
-
-    Parameters
-    ----------
-    *mappers
-        dictionaries mapping source to destination objects.
-    """
-    return self.__class__.from_iterable((substitute(se, *mappers) for se in self))
+def _(self: SymbolicList, replacements: Mapping[Any, Any]) -> SymbolicList:
+    return self.__class__.from_iterable((substitute(se, replacements) for se in self))
 
 
 @substitute_by_name.register
-def _(self: SymbolicList, **symbols: Any) -> SymbolicList:
-    """Replace Symbols by values or objects, matching by name.
-
-    If multiple mappers are provided,
-        they will be used in order (using a ChainMap)
-
-    If a given object is not found in the mappers,
-        the same object will be returned.
-
-    Parameters
-    ----------
-    **symbols
-        keyword arguments connecting names to values.
-    """
+def _(self: SymbolicList, **replacements: Any) -> SymbolicList:
     return self.__class__.from_iterable(
-        (substitute_by_name(se, **symbols) for se in self)
+        (substitute_by_name(se, **replacements) for se in self)
     )
 
 
 @evaluate_impl.register
 def _(self: SymbolicList, libsl: types.ModuleType) -> SymbolicList:
-    """Evaluate expression.
-
-    If no implementation library is provided:
-    1. 'libsl' will be looked up going back though the stack
-        until is found.
-    2. If still not found, the implementation using the python
-        math module will be used (and a warning will be issued).
-
-    Parameters
-    ----------
-    libs
-        implementations
-    """
-
     return self.__class__.from_iterable(evaluate_impl(se, libsl) for se in self)
 
 
-class SymbolicNamespace:
+@yield_named.register
+def _(
+    self: SymbolicList, include_anonymous: bool = False
+) -> Generator[Named, None, None]:
+    for se in self:
+        yield from yield_named(se, include_anonymous)
+
+
+# This is necessary to use singledispatch on classes.
+class SymbolicNamespaceMeta(type):
+    expressions: SymbolicList
+
+
+class SymbolicNamespace(metaclass=SymbolicNamespaceMeta):
     expressions: SymbolicList = SymbolicList()
 
-    # TODO: remove this.
-    @classmethod
-    def symbol_names(cls, namespace: str | None = "") -> set[str]:
-        out = set()
-        for expr in cls.expressions:
-            out.update((named.name for named in yield_named(expr, namespace)))
-        return out
+
+@yield_named.register
+def _(
+    self: SymbolicNamespace, include_anonymous: bool = False
+) -> Generator[Named, None, None]:
+    for expr in self.expressions:
+        yield from yield_named(expr, include_anonymous)
+
+
+@yield_named.register
+def _(
+    self: SymbolicNamespaceMeta, include_anonymous: bool = False
+) -> Generator[Named, None, None]:
+    for expr in self.expressions:
+        yield from yield_named(expr, include_anonymous)
 
 
 @dataclasses.dataclass(frozen=True, repr=False)

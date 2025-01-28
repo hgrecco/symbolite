@@ -15,7 +15,7 @@ import types
 from typing import Any, Iterable, Mapping
 
 from ..abstract.symbol import Symbol, yield_named
-from .operations import evaluate, evaluate_impl, substitute, substitute_by_name
+from .operations import evaluate_impl, substitute, substitute_by_name
 
 
 class SymbolicList(list[Symbol]):
@@ -66,7 +66,7 @@ def _(self: SymbolicList, **symbols: Any) -> SymbolicList:
 
 
 @evaluate_impl.register
-def _(self: SymbolicList, **libs: types.ModuleType) -> SymbolicList:
+def _(self: SymbolicList, libsl: types.ModuleType) -> SymbolicList:
     """Evaluate expression.
 
     If no implementation library is provided:
@@ -81,7 +81,7 @@ def _(self: SymbolicList, **libs: types.ModuleType) -> SymbolicList:
         implementations
     """
 
-    return self.__class__.from_iterable(evaluate(se, **libs) for se in self)
+    return self.__class__.from_iterable(evaluate_impl(se, libsl) for se in self)
 
 
 class SymbolicNamespace:

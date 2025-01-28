@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import jax.numpy as np
 
-from symbolite.core import Unsupported
+from symbolite.core.util import Unsupported
 
 abs = np.abs
 acos = np.arccos

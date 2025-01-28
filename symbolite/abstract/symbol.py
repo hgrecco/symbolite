@@ -11,9 +11,7 @@ Objects and functions for symbol operations.
 from __future__ import annotations
 
 import dataclasses
-import functools
 import types
-from operator import attrgetter
 from typing import (
     Any,
     Callable,
@@ -27,76 +25,22 @@ from typing import (
 
 from typing_extensions import Self
 
-from symbolite.core.util import repr_without_defaults
-
-from ..core import (
-    Unsupported,
-    evaluate,
+from ..core.expression import Expression, NamedExpression
+from ..core.function import BaseFunction
+from ..core.named import Named, yield_named
+from ..core.operations import (
     evaluate_impl,
     substitute,
     substitute_by_name,
 )
+from ..core.util import Unsupported, repr_without_defaults
 
 P = ParamSpec("P")
 T = TypeVar("T")
 
 
-def filter_namespace(
-    namespace: str | None = "", include_anonymous: bool = False
-) -> Callable[[Named], bool]:
-    def _inner(s: Named) -> bool:
-        if namespace is None:
-            return True
-        return s.namespace == namespace
-
-    return _inner
-
-
 @dataclasses.dataclass(frozen=True, repr=False)
-class Named:
-    name: str | None = None
-    namespace: str = ""
-
-    def __str__(self) -> str:
-        if self.name is None:
-            return "<anonymous>"
-
-        if self.namespace:
-            return self.namespace + "." + self.name
-
-        return self.name
-
-    def __repr__(self) -> str:
-        return repr_without_defaults(self)
-
-    @property
-    def is_anonymous(self) -> bool:
-        return self.name is None
-
-    def format(self, *args: Any, **kwargs: Any) -> str: ...
-
-
-def symbol_namespaces(self: Any) -> set[str]:
-    """Return a set of symbol libraries"""
-    return set(map(lambda s: s.namespace, yield_named(self, False)))
-
-
-def symbol_names(self: Any, namespace: str | None = "") -> set[str]:
-    """Return a set of symbol names (with full namespace indication).
-
-    Parameters
-    ----------
-    namespace: str or None
-        If None, all symbols will be returned independently of the namespace.
-        If a string, will compare Symbol.namespace to that.
-        Defaults to "" which is the namespace for user defined symbols.
-    """
-    ff = filter_namespace(namespace)
-    return set(map(str, filter(ff, yield_named(self, False))))
-
-
-@dataclasses.dataclass(frozen=True, repr=False)
-class Symbol(Named):
+class Symbol(NamedExpression):
     """Base class for objects that might operate with others using
     python operators that map to magic methods
 
@@ -122,8 +66,6 @@ class Symbol(Named):
     mapped: e.g. __setitem__ or __delitem__
 
     """
-
-    expression: Expression | None = None
 
     # Comparison methods (not operator)
     def eq(self, other: Any) -> Symbol:
@@ -291,22 +233,17 @@ class Symbol(Named):
         return str(self.expression)
 
 
-@functools.singledispatch
-def yield_named(
-    self: Symbol, include_anonymous: bool = False
-) -> Generator[Named, None, None]:
-    try:
-        if self.expression is None:
-            if include_anonymous or not self.is_anonymous:
-                yield self
-        else:
-            yield from yield_named(self.expression, include_anonymous)
-    except Exception:
-        return self
+@yield_named.register
+def _(self: Symbol, include_anonymous: bool = False) -> Generator[Named, None, None]:
+    if self.expression is None:
+        if include_anonymous or not self.is_anonymous:
+            yield self
+    else:
+        yield from yield_named(self.expression, include_anonymous)
 
 
 @substitute.register
-def substitute_symbol(self: Symbol, mapper: Mapping[Any, Any]) -> Symbol:
+def _(self: Symbol, mapper: Mapping[Any, Any]) -> Symbol:
     """Replace symbols, functions, values, etc by others.
 
     If multiple mappers are provided,
@@ -329,7 +266,7 @@ def substitute_symbol(self: Symbol, mapper: Mapping[Any, Any]) -> Symbol:
 
 
 @substitute_by_name.register
-def substitute_by_name_symbol(self: Symbol, **mapper: Any) -> Symbol:
+def _(self: Symbol, **mapper: Any) -> Symbol:
     """Replace Symbols by values or objects, matching by name.
 
     If multiple mappers are provided,
@@ -352,7 +289,7 @@ def substitute_by_name_symbol(self: Symbol, **mapper: Any) -> Symbol:
 
 
 @evaluate_impl.register
-def evaluate_impl_symbol(self: Symbol, libsl: types.ModuleType) -> Any:
+def _(self: Symbol, libsl: types.ModuleType) -> Any:
     """Evaluate expression.
 
     If no implementation library is provided:
@@ -401,58 +338,6 @@ def downcast(symbol_obj: Symbol, subclass: type[S]) -> S:
     )
 
 
-@dataclasses.dataclass(frozen=True, repr=False, kw_only=True)
-class BaseFunction(Named):
-    """A callable primitive that will return a call."""
-
-    fmt: str | None = None
-    arity: int | None = None
-
-    @property
-    def call(self) -> type[Expression]:
-        return Expression
-
-    @property
-    def output_type(self):
-        return Symbol
-
-    def _call(self, *args: Any, **kwargs: Any) -> Symbol:
-        return self.output_type(expression=self._build_resolver(*args, **kwargs))
-
-    def _build_resolver(self, *args: Any, **kwargs: Any) -> Expression:
-        if self.arity is None:
-            return self.call(self, args, tuple(kwargs.items()))
-        if kwargs:
-            raise ValueError(
-                "If arity is given, keyword arguments should not be provided."
-            )
-        if len(args) != self.arity:
-            raise ValueError(
-                f"Invalid number of arguments ({len(args)}), expected {self.arity}."
-            )
-        return self.call(self, args)
-
-    def format(self, *args: Any, **kwargs: Any) -> str:
-        if self.fmt:
-            return self.fmt.format(*args, **kwargs)
-
-        plain_args = args + tuple(f"{k}={v}" for k, v in kwargs.items())
-        return f"{str(self)}({', '.join((str(v) for v in plain_args))})"
-
-
-@dataclasses.dataclass(frozen=True, repr=False)
-class Function(BaseFunction):
-    def __call__(self, *args: Any, **kwargs: Any) -> Symbol:
-        return self._call(*args, **kwargs)
-
-
-@evaluate_impl.register
-def evaluate_impl_function(
-    expr: BaseFunction, libsl: types.ModuleType
-) -> Any | Unsupported:
-    return attrgetter(str(expr))(libsl)
-
-
 def _add_parenthesis(
     self: UnaryFunction | BinaryFunction,
     arg: UnaryFunction | BinaryFunction | Symbol,
@@ -470,6 +355,16 @@ def _add_parenthesis(
         case _:
             pass
     return str(arg)
+
+
+@dataclasses.dataclass(frozen=True, repr=False, kw_only=True)
+class Function(BaseFunction):
+    @property
+    def output_type(self) -> type[Symbol]:
+        return Symbol
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Symbol:
+        return self._call(*args, **kwargs)
 
 
 @dataclasses.dataclass(frozen=True, repr=False, kw_only=True)
@@ -495,9 +390,7 @@ class UserFunction(Function, Generic[P, T]):
 
 
 @evaluate_impl.register
-def evaluate_impl_user_function(
-    self: UserFunction, libsl: types.ModuleType
-) -> Callable[P, T]:
+def _(self: UserFunction, libsl: types.ModuleType) -> Callable[..., Any]:
     impls = self._impls
     if libsl in impls:
         return impls[libsl]
@@ -510,7 +403,7 @@ def evaluate_impl_user_function(
 
 
 @dataclasses.dataclass(frozen=True, repr=False, kw_only=True)
-class UnaryFunction(BaseFunction):
+class UnaryFunction(Function):
     arity: int = 1
     precedence: int
 
@@ -524,9 +417,13 @@ class UnaryFunction(BaseFunction):
 
 
 @dataclasses.dataclass(frozen=True, repr=False, kw_only=True)
-class BinaryFunction(BaseFunction):
+class BinaryFunction(Function):
     arity: int = 2
     precedence: int
+
+    @property
+    def output_type(self) -> type[Symbol]:
+        return Symbol
 
     def format(self, *args: Any, **kwargs: Any) -> str:
         x, y = args
@@ -536,119 +433,6 @@ class BinaryFunction(BaseFunction):
 
     def __call__(self, arg1: Symbol, arg2: Symbol) -> Symbol:
         return self._call(arg1, arg2)
-
-
-@dataclasses.dataclass(frozen=True, repr=False)
-class Expression:
-    """A Function that has been called with certain arguments."""
-
-    func: Named
-    args: tuple[Any, ...]
-    kwargs_items: tuple[tuple[str, Any], ...] = ()
-
-    def __post_init__(self) -> None:
-        if isinstance(self.kwargs_items, dict):
-            object.__setattr__(self, "kwargs_items", tuple(self.kwargs_items.items()))
-
-    @functools.cached_property
-    def kwargs(self) -> dict[str, Any]:
-        return dict(self.kwargs_items)
-
-    def __str__(self) -> str:
-        return self.func.format(*self.args, *self.kwargs)
-
-    def __repr__(self) -> str:
-        return repr_without_defaults(self)
-
-
-@yield_named.register
-def yield_named_expression(
-    self: Expression, include_anonymous: bool = False
-) -> Generator[Named, None, None]:
-    if include_anonymous or not self.func.is_anonymous:
-        yield self.func
-
-    for arg in self.args:
-        if isinstance(arg, Symbol):
-            yield from yield_named(arg, include_anonymous)
-
-    for _, v in self.kwargs_items:
-        if isinstance(v, Symbol):
-            yield from yield_named(v, include_anonymous)
-
-
-@substitute.register
-def substitute_expression(self: Expression, mapper: Mapping[Any, Any]) -> Expression:
-    """Replace symbols, functions, values, etc by others.
-
-    If multiple mappers are provided,
-        they will be used in order (using a ChainMap)
-
-    If a given object is not found in the mappers,
-        the same object will be returned.
-
-    Parameters
-    ----------
-    mappers
-        dictionary mapping source to destination objects.
-    """
-    func = mapper.get(self.func, self.func)
-    args = tuple(substitute(arg, mapper) for arg in self.args)
-    kwargs = {k: substitute(arg, mapper) for k, arg in self.kwargs_items}
-
-    return Expression(func, args, tuple(kwargs.items()))
-
-
-@substitute_by_name.register
-def substitute_by_name_expression(self: Expression, **mapper: Any) -> Expression:
-    """Replace symbols, functions, values, etc by others.
-
-    If multiple mappers are provided,
-        they will be used in order (using a ChainMap)
-
-    If a given object is not found in the mappers,
-        the same object will be returned.
-
-    Parameters
-    ----------
-    mappers
-        dictionary mapping source to destination objects.
-    """
-    func = mapper.get(str(self.func), self.func)
-    args = tuple(substitute_by_name(arg, **mapper) for arg in self.args)
-    kwargs = {k: substitute_by_name(arg, **mapper) for k, arg in self.kwargs_items}
-
-    return Expression(func, args, tuple(kwargs.items()))
-
-
-@evaluate_impl.register
-def evaluate_impl_expression(self: Expression, libsl: types.ModuleType) -> Any:
-    """Evaluate expression.
-
-    If no implementation library is provided:
-    1. 'libsl' will be looked up going back though the stack
-        until is found.
-    2. If still not found, the implementation using the python
-        math module will be used (and a warning will be issued).
-
-    Parameters
-    ----------
-    libs
-        implementations
-    """
-
-    func = evaluate_impl(self.func, libsl)
-    args = tuple(evaluate(arg, libsl) for arg in self.args)
-    kwargs = {k: evaluate_impl(arg, libsl) for k, arg in self.kwargs_items}
-
-    try:
-        return func(*args, **kwargs)
-    except Exception as ex:
-        try:
-            ex.add_note(f"While evaluating {func}(*{args}, **{kwargs}): {ex}")
-        except AttributeError:
-            pass
-        raise ex
 
 
 # Comparison methods (not operator)

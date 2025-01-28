@@ -8,11 +8,13 @@ Symbolite core util functions.
 :license: BSD, see LICENSE for more details.
 """
 
+from __future__ import annotations
+
 import dataclasses
 from types import ModuleType
 from typing import Any, Callable, Hashable, Iterator, Mapping, TypeVar
 
-from . import evaluate, inspect, substitute
+from .operations import evaluate, inspect, substitute
 
 TH = TypeVar("TH", bound=Hashable)
 
@@ -57,8 +59,8 @@ def solve_dependencies(dependencies: Mapping[TH, set[TH]]) -> Iterator[set[TH]]:
 def compute_dependencies(
     content: Mapping[TH, Any],
     is_dependency: Callable[[Any], bool],
-):
-    dependencies = {}
+) -> dict[TH, set[TH]]:
+    dependencies: dict[TH, set[TH]] = {}
     for k, v in content.items():
         contents = inspect(v)
         if contents == {k: 1}:
@@ -132,3 +134,7 @@ def repr_without_defaults(
 
     args_repr = (f"{k}={v}" for k, v in include.items())
     return f"{dataclass_instance.__class__.__name__}({', '.join(args_repr)})"
+
+
+class Unsupported(ValueError):
+    """Label unsupported"""

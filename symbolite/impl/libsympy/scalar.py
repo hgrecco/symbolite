@@ -14,7 +14,7 @@ from __future__ import annotations
 import sympy as sy
 from sympy.abc import x, y
 
-from symbolite.core import Unsupported
+from symbolite.core.util import Unsupported
 
 abs = sy.Abs
 acos = sy.acos

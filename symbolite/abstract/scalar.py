@@ -13,9 +13,10 @@ from __future__ import annotations
 import dataclasses
 from typing import Any
 
-from ..core import Unsupported
+from ..core.function import BaseFunction
+from ..core.util import Unsupported
 from . import symbol
-from .symbol import BaseFunction, Symbol, downcast
+from .symbol import Symbol, downcast
 
 NumberT = int | float | complex
 
@@ -153,30 +154,29 @@ class Scalar(Symbol):
         return downcast(symbol.invert(self), Scalar)
 
 
-@dataclasses.dataclass(frozen=True, repr=False)
-class ScalarUnaryFunction(BaseFunction):
+@dataclasses.dataclass(frozen=True, repr=False, kw_only=True)
+class ScalarFunction(BaseFunction):
+    @property
+    def output_type(self) -> type[Scalar]:
+        return Scalar
+
+
+@dataclasses.dataclass(frozen=True, repr=False, kw_only=True)
+class ScalarUnaryFunction(ScalarFunction):
     namespace: str = "scalar"
     arity: int = 1
 
     def __call__(self, arg1: Scalar | NumberT) -> Scalar:
         return super()._call(arg1)  # type: ignore
 
-    @property
-    def output_type(self):
-        return Scalar
 
-
-@dataclasses.dataclass(frozen=True, repr=False)
-class ScalarBinaryFunction(BaseFunction):
+@dataclasses.dataclass(frozen=True, repr=False, kw_only=True)
+class ScalarBinaryFunction(ScalarFunction):
     namespace: str = "scalar"
     arity: int = 2
 
     def __call__(self, arg1: Scalar | NumberT, arg2: Scalar | NumberT) -> Scalar:
         return super()._call(arg1, arg2)  # type: ignore
-
-    @property
-    def output_type(self):
-        return Scalar
 
 
 # "gcd": None,  # 1 to ---

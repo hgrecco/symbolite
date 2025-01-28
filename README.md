@@ -14,8 +14,7 @@ expressions. Just create a symbol (or more) and operate with them as you
 will normally do in Python.
 
 ```python
->>> from symbolite import Symbol
->>> from symbolite.core import substitute_by_name, evaluate
+>>> from symbolite import Symbol, substitute_by_name, evaluate
 >>> x = Symbol("x")
 >>> y = Symbol("y")
 >>> expr1 = x + 3 * y

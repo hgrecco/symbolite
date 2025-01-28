@@ -8,6 +8,18 @@ A minimal symbolic python package.
 :license: BSD, see LICENSE for more details.
 """
 
-from .abstract import Function, Scalar, Symbol, UserFunction, Vector, scalar, vector
+from .abstract import Scalar, Symbol, Vector, scalar, vector
+from .abstract.symbol import UserFunction
+from .core.operations import evaluate, substitute, substitute_by_name
 
-__all__ = ["Symbol", "Function", "Scalar", "scalar", "Vector", "vector", "UserFunction"]
+__all__ = [
+    "Symbol",
+    "Scalar",
+    "scalar",
+    "Vector",
+    "vector",
+    "UserFunction",
+    "evaluate",
+    "substitute",
+    "substitute_by_name",
+]

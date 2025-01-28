@@ -9,7 +9,7 @@ Abstract symbolite primitives.
 """
 
 from .scalar import Scalar
-from .symbol import Function, Symbol, UserFunction
+from .symbol import Symbol
 from .vector import Vector
 
-__all__ = ["Symbol", "Function", "Scalar", "Vector", "UserFunction"]
+__all__ = ["Symbol", "Scalar", "Vector"]

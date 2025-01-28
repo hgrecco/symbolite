@@ -1,8 +1,10 @@
 import pytest
 
-from symbolite import Function, Symbol
-from symbolite.abstract.symbol import Expression, symbol_names
-from symbolite.core import evaluate, substitute, substitute_by_name
+from symbolite import Symbol
+from symbolite.abstract.symbol import Function
+from symbolite.core.expression import Expression
+from symbolite.core.named import symbol_names
+from symbolite.core.operations import evaluate, substitute, substitute_by_name
 from symbolite.impl import find_module_in_stack
 
 x, y, z = map(Symbol, "x y z".split())

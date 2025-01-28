@@ -13,11 +13,11 @@ from __future__ import annotations
 import dataclasses
 from typing import Any, Iterable, Mapping, Sequence, overload
 
-from ..core import substitute
+from ..core.named import symbol_names as _symbol_names
+from ..core.operations import substitute
 from . import symbol
 from .scalar import NumberT, Scalar
 from .symbol import BaseFunction, Symbol, downcast
-from .symbol import symbol_names as _symbol_names
 
 VectorT = Iterable[NumberT]
 

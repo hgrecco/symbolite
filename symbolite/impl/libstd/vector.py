@@ -12,7 +12,7 @@ into values and functions defined in Python's math module.
 import math
 import operator
 
-from ...core import Unsupported
+from ...core.util import Unsupported
 
 op_getitem = operator.getitem
 

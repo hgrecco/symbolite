@@ -1,3 +1,13 @@
+"""
+symbolite.core.symbolgroup
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Groups of symbols and symbolic expressions.
+
+:copyright: 2023 by Symbolite Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
+"""
+
 from __future__ import annotations
 
 import dataclasses
@@ -5,7 +15,7 @@ import types
 from typing import Any, Iterable, Mapping
 
 from ..abstract.symbol import Symbol, yield_named
-from . import evaluate, evaluate_impl, substitute, substitute_by_name
+from .operations import evaluate, evaluate_impl, substitute, substitute_by_name
 
 
 class SymbolicList(list[Symbol]):
@@ -18,7 +28,7 @@ class SymbolicList(list[Symbol]):
 
 
 @substitute.register
-def substitute_list(self: SymbolicList, *mappers: Mapping[Any, Any]) -> SymbolicList:
+def _(self: SymbolicList, *mappers: Mapping[Any, Any]) -> SymbolicList:
     """Replace symbols, functions, values, etc by others.
 
     If multiple mappers are provided,
@@ -36,9 +46,7 @@ def substitute_list(self: SymbolicList, *mappers: Mapping[Any, Any]) -> Symbolic
 
 
 @substitute_by_name.register
-def substitute_by_name_symbolic_list(
-    self: SymbolicList, **symbols: Any
-) -> SymbolicList:
+def _(self: SymbolicList, **symbols: Any) -> SymbolicList:
     """Replace Symbols by values or objects, matching by name.
 
     If multiple mappers are provided,
@@ -58,9 +66,7 @@ def substitute_by_name_symbolic_list(
 
 
 @evaluate_impl.register
-def evaluate_impl_symbolic_list(
-    self: SymbolicList, **libs: types.ModuleType
-) -> SymbolicList:
+def _(self: SymbolicList, **libs: types.ModuleType) -> SymbolicList:
     """Evaluate expression.
 
     If no implementation library is provided:

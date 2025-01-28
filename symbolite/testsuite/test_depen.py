@@ -2,8 +2,7 @@ from typing import Any
 
 import pytest
 
-from symbolite import scalar
-from symbolite.core import substitute
+from symbolite import scalar, substitute
 from symbolite.core.util import eval_content, substitute_content
 from symbolite.impl import libstd
 

@@ -20,6 +20,7 @@ from typing import Any, Callable, Mapping, Sequence
 from ..impl import find_module_in_stack
 
 
+@singledispatch
 def as_string(expr: Any) -> str:
     """Return the expression as a string.
 

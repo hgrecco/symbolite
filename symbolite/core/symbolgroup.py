@@ -11,71 +11,87 @@ Groups of symbols and symbolic expressions.
 from __future__ import annotations
 
 import dataclasses
+import inspect
 import types
-from typing import Any, Generator, Iterable, Mapping
+import warnings
+from typing import Any, Generator, Mapping
 
 from ..abstract.symbol import Symbol
 from ..core.named import Named, yield_named
-from .operations import evaluate_impl, substitute, substitute_by_name
-
-
-class SymbolicList(list[Symbol]):
-    @classmethod
-    def from_iterable(cls, it: Iterable[Symbol]):
-        return cls(it)
-
-    def __str__(self):
-        return "\n".join(str(se) for se in self)
-
-
-@substitute.register
-def _(self: SymbolicList, replacements: Mapping[Any, Any]) -> SymbolicList:
-    return self.__class__.from_iterable((substitute(se, replacements) for se in self))
-
-
-@substitute_by_name.register
-def _(self: SymbolicList, **replacements: Any) -> SymbolicList:
-    return self.__class__.from_iterable(
-        (substitute_by_name(se, **replacements) for se in self)
-    )
-
-
-@evaluate_impl.register
-def _(self: SymbolicList, libsl: types.ModuleType) -> SymbolicList:
-    return self.__class__.from_iterable(evaluate_impl(se, libsl) for se in self)
-
-
-@yield_named.register
-def _(
-    self: SymbolicList, include_anonymous: bool = False
-) -> Generator[Named, None, None]:
-    for se in self:
-        yield from yield_named(se, include_anonymous)
+from .operations import as_string, evaluate_impl, substitute
 
 
 # This is necessary to use singledispatch on classes.
 class SymbolicNamespaceMeta(type):
-    expressions: SymbolicList
+    pass
 
 
 class SymbolicNamespace(metaclass=SymbolicNamespaceMeta):
-    expressions: SymbolicList = SymbolicList()
+    pass
 
 
-@yield_named.register
-def _(
-    self: SymbolicNamespace, include_anonymous: bool = False
-) -> Generator[Named, None, None]:
-    for expr in self.expressions:
-        yield from yield_named(expr, include_anonymous)
+# In Python 3.10 UnionTypes are not supported by singledispatch.register
+@yield_named.register(SymbolicNamespaceMeta)
+@yield_named.register(SymbolicNamespace)
+def _(self, include_anonymous: bool = False) -> Generator[Named, None, None]:
+    assert isinstance(self, (SymbolicNamespace, SymbolicNamespaceMeta))
+    for name in dir(self):
+        if name.startswith("__"):
+            continue
+        attr = getattr(self, name)
+        yield from yield_named(attr, include_anonymous)
 
 
-@yield_named.register
-def _(
-    self: SymbolicNamespaceMeta, include_anonymous: bool = False
-) -> Generator[Named, None, None]:
-    for expr in self.expressions:
-        yield from yield_named(expr, include_anonymous)
+@substitute.register(SymbolicNamespaceMeta)
+@substitute.register(SymbolicNamespace)
+def _(self, replacements: Mapping[Any, Any]) -> Any:
+    assert isinstance(self, (SymbolicNamespace, SymbolicNamespaceMeta))
+
+    d = {}
+    for attr_name in dir(self):
+        if attr_name.startswith("__"):
+            continue
+        attr = getattr(self, attr_name)
+        d[attr_name] = substitute(attr, replacements)
+
+    return type(self.__name__, inspect.getmro(self), d)
+
+
+@evaluate_impl.register(SymbolicNamespaceMeta)
+@evaluate_impl.register(SymbolicNamespace)
+def _(self, libsl: types.ModuleType) -> Any:
+    return {
+        attr_name: evaluate_impl(getattr(self, attr_name), libsl)
+        for attr_name in dir(self)
+        if not attr_name.startswith("__")
+    }
+
+
+@as_string.register(SymbolicNamespaceMeta)
+@as_string.register(SymbolicNamespace)
+def _(self) -> str:
+    free_symbols: list[str] = []
+    lines: list[str] = []
+
+    for attr_name in dir(self):
+        if attr_name.startswith("__"):
+            continue
+        attr = getattr(self, attr_name)
+        if not isinstance(attr, Symbol):
+            continue
+
+        if attr.name is not None and attr_name != attr.name:
+            warnings.warn(f"Missmatched names in attribute {attr_name} vs. {attr}")
+
+        if attr.expression is None:
+            if attr.name is not None and attr.name not in free_symbols:
+                free_symbols.append(attr.name)
+        else:
+            lines.append(f"{attr_name} = {attr!s}")
+
+    lines.insert(0, f"def {self.__name__}({', '.join(free_symbols)}):")
+
+    return "\n    ".join(lines)
 
 
 @dataclasses.dataclass(frozen=True, repr=False)
@@ -85,4 +101,3 @@ class AutoSymbol(Symbol):
     def __set_name__(self, owner: Any, name: str):
         if issubclass(owner, SymbolicNamespace):
             object.__setattr__(self, "name", name)
-            owner.expressions.append(self)

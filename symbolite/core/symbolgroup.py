@@ -10,7 +10,6 @@ Groups of symbols and symbolic expressions.
 
 from __future__ import annotations
 
-import dataclasses
 import inspect
 import types
 import warnings
@@ -92,12 +91,3 @@ def _(self) -> str:
     lines.insert(0, f"def {self.__name__}({', '.join(free_symbols)}):")
 
     return "\n    ".join(lines)
-
-
-@dataclasses.dataclass(frozen=True, repr=False)
-class AutoSymbol(Symbol):
-    name: str = "<auto>"
-
-    def __set_name__(self, owner: Any, name: str):
-        if issubclass(owner, SymbolicNamespace):
-            object.__setattr__(self, "name", name)

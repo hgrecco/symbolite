@@ -232,6 +232,10 @@ class Symbol(NamedExpression):
             return super().__str__()
         return str(self.expression)
 
+    # Naming in symbolic namespace
+    def __set_name__(self, owner: Any, name: str):
+        object.__setattr__(self, "name", name)
+
 
 @yield_named.register
 def _(self: Symbol, include_anonymous: bool = False) -> Generator[Named, None, None]:

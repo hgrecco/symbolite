@@ -3,14 +3,14 @@ import math
 from symbolite import Scalar, Symbol, scalar
 from symbolite.core.named import symbol_names
 from symbolite.core.operations import as_string, evaluate, substitute
-from symbolite.core.symbolgroup import AutoSymbol, SymbolicNamespace
+from symbolite.core.symbolgroup import SymbolicNamespace
 from symbolite.impl import libstd
 
 
 def test_naming():
     class N(SymbolicNamespace):
-        x = AutoSymbol()
-        y = AutoSymbol()
+        x = Symbol()
+        y = Symbol()
 
     assert isinstance(N.x, Symbol)
     assert isinstance(N.y, Symbol)
@@ -21,8 +21,8 @@ def test_naming():
 
 def test_substitute_eval():
     class X(SymbolicNamespace):
-        x = Scalar("x")
-        y = Scalar("y")
+        x = Scalar()
+        y = Scalar()
         z = x + 2 * y
         p = scalar.cos(z)
 
@@ -40,8 +40,8 @@ def test_substitute_eval():
 
 def test_as_str():
     class X(SymbolicNamespace):
-        x = Scalar("x")
-        y = Scalar("y")
+        x = Scalar()
+        y = Scalar()
         z = x + 2 * y
         p = scalar.cos(z)
 
@@ -52,7 +52,7 @@ def test_as_str():
 
 def test_eq():
     class N(SymbolicNamespace):
-        x = AutoSymbol()
-        y = AutoSymbol()
+        x = Scalar()
+        y = Scalar()
 
         x.eq(2 * y)

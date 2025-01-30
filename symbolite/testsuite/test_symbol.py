@@ -4,7 +4,7 @@ from symbolite import Symbol
 from symbolite.abstract.symbol import Function
 from symbolite.core.expression import Expression
 from symbolite.core.named import symbol_names
-from symbolite.core.operations import evaluate, substitute, substitute_by_name
+from symbolite.core.operations import evaluate, substitute
 from symbolite.impl import find_module_in_stack
 
 x, y, z = map(Symbol, "x y z".split())
@@ -96,17 +96,6 @@ def test_subs(expr: Symbol, result: Symbol):
 @pytest.mark.parametrize(
     "expr,result",
     [
-        (x + 2 * y, x + 2 * z),
-        (x + 2 * F(y), x + 2 * F(z)),
-    ],
-)
-def test_subs_by_name(expr: Symbol, result: Symbol):
-    assert substitute_by_name(expr, y=z) == result
-
-
-@pytest.mark.parametrize(
-    "expr,result",
-    [
         (x + y, {"x", "y"}),
         (x[z], {"x", "z"}),
         (F(x), {"F", "x"}),
@@ -158,7 +147,7 @@ class Scalar(Symbol):
     ],
 )
 def test_eval_str(expr: Symbol, result: Symbol):
-    assert eval(str(substitute_by_name(expr, x=1, y=3))) == result
+    assert eval(str(substitute(expr, {x: 1, y: 3}))) == result
 
 
 @pytest.mark.parametrize(
@@ -169,7 +158,7 @@ def test_eval_str(expr: Symbol, result: Symbol):
     ],
 )
 def test_eval(expr: Symbol, result: Symbol):
-    assert evaluate(substitute_by_name(expr, x=1, y=3)) == result
+    assert evaluate(substitute(expr, {x: 1, y: 3})) == result
 
 
 def test_find_libs_in_stack():

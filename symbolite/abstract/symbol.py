@@ -31,7 +31,6 @@ from ..core.named import Named, yield_named
 from ..core.operations import (
     evaluate_impl,
     substitute,
-    substitute_by_name,
 )
 from ..core.util import Unsupported, repr_without_defaults
 
@@ -251,16 +250,6 @@ def _(self: Symbol, mapper: Mapping[Any, Any]) -> Symbol:
     if self.expression is None:
         return mapper.get(self, self)
     out = substitute(self.expression, mapper)
-    if not isinstance(out, Expression):
-        return out
-    return self.__class__(name=self.name, namespace=self.namespace, expression=out)
-
-
-@substitute_by_name.register
-def _(self: Symbol, **mapper: Any) -> Symbol:
-    if self.expression is None:
-        return mapper.get(str(self), self)
-    out = substitute_by_name(self.expression, **mapper)
     if not isinstance(out, Expression):
         return out
     return self.__class__(name=self.name, namespace=self.namespace, expression=out)

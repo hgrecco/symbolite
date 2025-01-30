@@ -5,7 +5,7 @@ import pytest
 
 from symbolite import Symbol, scalar, vector
 from symbolite.core.named import symbol_names
-from symbolite.core.operations import evaluate, substitute_by_name
+from symbolite.core.operations import evaluate, substitute
 from symbolite.core.util import Unsupported
 from symbolite.impl import get_all_implementations
 
@@ -40,8 +40,8 @@ def test_vector():
 
 
 def test_methods():
-    assert substitute_by_name(vec, vec=(1, 2, 3)) == (1, 2, 3)
-    assert evaluate(substitute_by_name(vec[1], vec=(1, 2, 3))) == 2
+    assert substitute(vec, {vec: (1, 2, 3)}) == (1, 2, 3)
+    assert evaluate(substitute(vec[1], {vec: (1, 2, 3)})) == 2
     assert symbol_names(vec) == {
         "vec",
     }
@@ -67,12 +67,12 @@ def test_impl(libsl: types.ModuleType):
 
     try:
         expr = vector.sum(v)
-        assert evaluate(substitute_by_name(expr, v=v1234), libsl=libsl) == 10
+        assert evaluate(substitute(expr, {v: v1234}), libsl=libsl) == 10
     except Unsupported:
         pass
 
     expr = vector.prod(v)
-    assert evaluate(substitute_by_name(expr, v=v1234), libsl=libsl) == 24
+    assert evaluate(substitute(expr, {v: v1234}), libsl=libsl) == 24
 
 
 @requires_numpy
@@ -87,12 +87,12 @@ def test_impl_numpy():
     v = np.asarray((1, 2, 3))
 
     expr1 = vector.Vector("vec") + 1
-    assert np.allclose(evaluate(substitute_by_name(expr1, vec=v)), v + 1)
+    assert np.allclose(evaluate(substitute(expr1, {vec: v})), v + 1)
 
     expr2 = scalar.cos(vector.sum(vector.Vector("vec")))
 
     assert np.allclose(
-        evaluate(substitute_by_name(expr2, vec=v), libsl=libsl), np.cos(np.sum(v))
+        evaluate(substitute(expr2, {vec: v}), libsl=libsl), np.cos(np.sum(v))
     )
 
 

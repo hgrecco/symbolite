@@ -162,20 +162,6 @@ def substitute(expr: Any, replacements: Mapping[Any, Any]) -> Any:
     return replacements.get(expr, expr)
 
 
-@singledispatch
-def substitute_by_name(expr: Any, **replacements: Any) -> Any:
-    """Replace Symbols by values or objects, matching by name.
-
-    Parameters
-    ----------
-    expr
-        symbolic expression.
-    replacements
-        replacement dictionary.
-    """
-    return expr
-
-
 @evaluate_impl.register
 def evaluate_impl_str(expr: str, libsl: types.ModuleType) -> Any:  # | Unsupported:
     return attrgetter(expr)(libsl)

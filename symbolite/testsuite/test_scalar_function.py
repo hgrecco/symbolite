@@ -5,7 +5,7 @@ import pytest
 
 from symbolite import Symbol, scalar
 from symbolite.core.named import symbol_names
-from symbolite.core.operations import as_function, evaluate, substitute_by_name
+from symbolite.core.operations import as_function, evaluate, substitute
 from symbolite.impl import get_all_implementations
 
 all_impl = get_all_implementations()
@@ -41,7 +41,7 @@ def test_typing():
 def test_known_symbols(expr: Symbol, libsl: types.ModuleType):
     f = as_function(expr, "my_function", ("x", "y"), libsl=libsl)
     assert f.__name__ == "my_function"
-    assert evaluate(substitute_by_name(expr, x=2, y=3), libsl=libsl) == f(2, 3)
+    assert evaluate(substitute(expr, {x: 2, y: 3}), libsl=libsl) == f(2, 3)
     assert tuple(inspect.signature(f).parameters.keys()) == ("x", "y")
 
 
@@ -57,7 +57,7 @@ def test_lib_symbols(expr: Symbol, replaced: Symbol, libsl: types.ModuleType):
     f = as_function(expr, "my_function", ("x", "y"), libsl=libsl)
     value = f(2, 3)
     assert f.__name__ == "my_function"
-    assert evaluate(substitute_by_name(expr, x=2, y=3), libsl=libsl) == value
+    assert evaluate(substitute(expr, {x: 2, y: 3}), libsl=libsl) == value
     assert tuple(inspect.signature(f).parameters.keys()) == ("x", "y")
 
 

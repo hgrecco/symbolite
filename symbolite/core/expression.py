@@ -17,7 +17,7 @@ import types
 from typing import Any, Generator, Mapping
 
 from .named import Named, yield_named
-from .operations import evaluate_impl, substitute, substitute_by_name
+from .operations import evaluate_impl, substitute
 from .util import repr_without_defaults
 
 
@@ -49,15 +49,6 @@ def _(self: Expression, mapper: Mapping[Any, Any]) -> Expression:
     func = mapper.get(self.func, self.func)
     args = tuple(substitute(arg, mapper) for arg in self.args)
     kwargs = {k: substitute(arg, mapper) for k, arg in self.kwargs_items}
-
-    return Expression(func, args, tuple(kwargs.items()))
-
-
-@substitute_by_name.register
-def _(self: Expression, **mapper: Any) -> Expression:
-    func = mapper.get(str(self.func), self.func)
-    args = tuple(substitute_by_name(arg, **mapper) for arg in self.args)
-    kwargs = {k: substitute_by_name(arg, **mapper) for k, arg in self.kwargs_items}
 
     return Expression(func, args, tuple(kwargs.items()))
 

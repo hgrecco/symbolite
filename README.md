@@ -14,7 +14,7 @@ expressions. Just create a symbol (or more) and operate with them as you
 will normally do in Python.
 
 ```python
->>> from symbolite import Symbol, substitute_by_name, evaluate
+>>> from symbolite import Symbol, substitute, evaluate
 >>> x = Symbol("x")
 >>> y = Symbol("y")
 >>> expr1 = x + 3 * y
@@ -26,7 +26,7 @@ An expression is just an unnamed Symbol.
 You can easily replace the symbols by the desired value.
 
 ```python
->>> expr2 = substitute_by_name(expr1, x=5, y=2)
+>>> expr2 = substitute(expr1, {x: 5, y: 2})
 >>> print(expr2)
 5 + 3 * 2
 ```

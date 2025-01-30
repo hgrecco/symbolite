@@ -46,19 +46,6 @@ class Expression:
 
 @substitute.register
 def _(self: Expression, mapper: Mapping[Any, Any]) -> Expression:
-    """Replace symbols, functions, values, etc by others.
-
-    If multiple mappers are provided,
-        they will be used in order (using a ChainMap)
-
-    If a given object is not found in the mappers,
-        the same object will be returned.
-
-    Parameters
-    ----------
-    mappers
-        dictionary mapping source to destination objects.
-    """
     func = mapper.get(self.func, self.func)
     args = tuple(substitute(arg, mapper) for arg in self.args)
     kwargs = {k: substitute(arg, mapper) for k, arg in self.kwargs_items}
@@ -68,19 +55,6 @@ def _(self: Expression, mapper: Mapping[Any, Any]) -> Expression:
 
 @substitute_by_name.register
 def _(self: Expression, **mapper: Any) -> Expression:
-    """Replace symbols, functions, values, etc by others.
-
-    If multiple mappers are provided,
-        they will be used in order (using a ChainMap)
-
-    If a given object is not found in the mappers,
-        the same object will be returned.
-
-    Parameters
-    ----------
-    mappers
-        dictionary mapping source to destination objects.
-    """
     func = mapper.get(str(self.func), self.func)
     args = tuple(substitute_by_name(arg, **mapper) for arg in self.args)
     kwargs = {k: substitute_by_name(arg, **mapper) for k, arg in self.kwargs_items}
@@ -90,20 +64,6 @@ def _(self: Expression, **mapper: Any) -> Expression:
 
 @evaluate_impl.register
 def _(self: Expression, libsl: types.ModuleType) -> Any:
-    """Evaluate expression.
-
-    If no implementation library is provided:
-    1. 'libsl' will be looked up going back though the stack
-        until is found.
-    2. If still not found, the implementation using the python
-        math module will be used (and a warning will be issued).
-
-    Parameters
-    ----------
-    libs
-        implementations
-    """
-
     func = evaluate_impl(self.func, libsl)
     args = tuple(evaluate_impl(arg, libsl) for arg in self.args)
     kwargs = {k: evaluate_impl(arg, libsl) for k, arg in self.kwargs_items}

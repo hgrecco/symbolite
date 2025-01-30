@@ -248,19 +248,6 @@ def _(self: Symbol, include_anonymous: bool = False) -> Generator[Named, None, N
 
 @substitute.register
 def _(self: Symbol, mapper: Mapping[Any, Any]) -> Symbol:
-    """Replace symbols, functions, values, etc by others.
-
-    If multiple mappers are provided,
-        they will be used in order (using a ChainMap)
-
-    If a given object is not found in the mappers,
-        the same object will be returned.
-
-    Parameters
-    ----------
-    mappers
-        dictionary mapping source to destination objects.
-    """
     if self.expression is None:
         return mapper.get(self, self)
     out = substitute(self.expression, mapper)
@@ -271,19 +258,6 @@ def _(self: Symbol, mapper: Mapping[Any, Any]) -> Symbol:
 
 @substitute_by_name.register
 def _(self: Symbol, **mapper: Any) -> Symbol:
-    """Replace Symbols by values or objects, matching by name.
-
-    If multiple mappers are provided,
-        they will be used in order (using a ChainMap)
-
-    If a given object is not found in the mappers,
-        the same object will be returned.
-
-    Parameters
-    ----------
-    **mapper
-        keyword arguments connecting names to values.
-    """
     if self.expression is None:
         return mapper.get(str(self), self)
     out = substitute_by_name(self.expression, **mapper)
@@ -294,20 +268,6 @@ def _(self: Symbol, **mapper: Any) -> Symbol:
 
 @evaluate_impl.register
 def _(self: Symbol, libsl: types.ModuleType) -> Any:
-    """Evaluate expression.
-
-    If no implementation library is provided:
-    1. 'libsl' will be looked up going back though the stack
-        until is found.
-    2. If still not found, the implementation using the python
-        math module will be used (and a warning will be issued).
-
-    Parameters
-    ----------
-    libs
-        implementations
-    """
-
     if self.expression is not None:
         return evaluate_impl(self.expression, libsl)
 

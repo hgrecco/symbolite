@@ -239,7 +239,7 @@ class Symbol(NamedExpression):
 @yield_named.register
 def _(self: Symbol, include_anonymous: bool = False) -> Generator[Named, None, None]:
     if self.expression is None:
-        if include_anonymous or not self.is_anonymous:
+        if include_anonymous or self.name is not None:
             yield self
     else:
         yield from yield_named(self.expression, include_anonymous)

@@ -73,7 +73,7 @@ def _(self: Expression, libsl: types.ModuleType) -> Any:
 def _(
     self: Expression, include_anonymous: bool = False
 ) -> Generator[Named, None, None]:
-    if include_anonymous or not self.func.is_anonymous:
+    if include_anonymous or self.func.name is not None:
         yield self.func
 
     for arg in self.args:

@@ -34,10 +34,6 @@ class Named:
     def __repr__(self) -> str:
         return repr_without_defaults(self)
 
-    @property
-    def is_anonymous(self) -> bool:
-        return self.name is None
-
     def format(self, *args: Any, **kwargs: Any) -> str: ...
 
 
@@ -81,5 +77,5 @@ def yield_named(
 
 @yield_named.register
 def _(self: Named, include_anonymous: bool = False) -> Generator[Named, None, None]:
-    if include_anonymous or not self.is_anonymous:
+    if include_anonymous or self.name is not None:
         yield self

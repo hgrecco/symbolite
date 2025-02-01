@@ -106,7 +106,7 @@ def _(expr: NamedExpression) -> str:
     function_name = expr.name or "f"
     return build_function_code(
         function_name,
-        tuple(map(str, free_symbols(expr))),
+        map(str, free_symbols(expr)),
         [
             assign("__out", str(expr)),
         ],

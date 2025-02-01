@@ -106,7 +106,7 @@ def _(
 ) -> str:
     assert isinstance(expr, (SymbolicNamespace, SymbolicNamespaceMeta))
 
-    lines = []
+    lines: list[str] = []
     for attr_name in dir(expr):
         attr = getattr(expr, attr_name)
         if not isinstance(attr, Symbol):
@@ -118,7 +118,7 @@ def _(
     return build_function_code(
         "f",
         tuple(map(str, free_symbols(expr))),
-        lines,
+        tuple(lines),
         [
             "__out",
         ],

@@ -15,7 +15,7 @@ import types
 import warnings
 from functools import singledispatch
 from operator import attrgetter
-from typing import TYPE_CHECKING, Any, Callable, Generator, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Callable, Generator, Iterable, Mapping
 
 from ..impl import find_module_in_stack
 
@@ -26,9 +26,9 @@ if TYPE_CHECKING:
 
 def build_function_code(
     name: str,
-    parameters: Sequence[str],
-    body: Sequence[str],
-    return_variables: Sequence[str],
+    parameters: Iterable[str],
+    body: Iterable[str],
+    return_variables: Iterable[str],
 ) -> str:
     """Build function code.
 
@@ -102,9 +102,9 @@ def _(
 ) -> str:
     return build_function_code(
         "f",
-        tuple(map(str, free_symbols(expr))),
-        [assign(f"__out_{ndx}", str(el)) for ndx, el in enumerate(expr)],
-        [f"__out_{ndx}" for ndx, _ in enumerate(expr)],
+        map(str, free_symbols(expr)),
+        (assign(f"__out_{ndx}", str(el)) for ndx, el in enumerate(expr)),
+        (f"__out_{ndx}" for ndx, _ in enumerate(expr)),
     )
 
 
@@ -114,7 +114,7 @@ def _(
 ) -> str:
     return build_function_code(
         "f",
-        tuple(map(str, free_symbols(tuple(expr.values())))),
+        map(str, free_symbols(tuple(expr.values()))),
         ["__out = {}"] + [assign(f"__out['{k}']", str(el)) for k, el in expr.items()],
         [
             "__out",

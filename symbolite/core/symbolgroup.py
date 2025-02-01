@@ -16,8 +16,17 @@ import warnings
 from typing import Any, Generator, Mapping
 
 from ..abstract.symbol import Symbol
-from ..core.named import Named, yield_named
-from .operations import as_string, evaluate_impl, substitute
+from .named import Named
+from .operations import (
+    as_function_def,
+    as_string,
+    assign,
+    build_function_code,
+    evaluate_impl,
+    substitute,
+    yield_free_symbols,
+    yield_named,
+)
 
 
 # This is necessary to use singledispatch on classes.
@@ -69,7 +78,7 @@ def _(self, libsl: types.ModuleType) -> Any:
 @as_string.register(SymbolicNamespaceMeta)
 @as_string.register(SymbolicNamespace)
 def _(self) -> str:
-    yield_free_symbols: list[str] = []
+    free_symbols: list[str] = []
     lines: list[str] = []
 
     for attr_name in dir(self):
@@ -83,18 +92,32 @@ def _(self) -> str:
             warnings.warn(f"Missmatched names in attribute {attr_name} vs. {attr}")
 
         if attr.expression is None:
-            if attr.name is not None and attr.name not in yield_free_symbols:
-                yield_free_symbols.append(attr.name)
+            if attr.name is not None and attr.name not in free_symbols:
+                free_symbols.append(attr.name)
         else:
             lines.append(f"{attr_name} = {attr!s}")
 
     return "\n".join(lines)
 
 
-# @as_function.register
-# def _(
-#     expr: Any,
-#     function_name: str,
-#     params: Sequence[TH],
-#     libsl: types.ModuleType | None = None,
-# ) -> Callable[..., Any]:
+@as_function_def.register
+def _(
+    expr: SymbolicNamespace,
+) -> str:
+    lines = []
+    for attr_name in dir(expr):
+        attr = getattr(expr, attr_name)
+        if not isinstance(attr, Symbol):
+            continue
+
+        if attr.expression is not None:
+            lines.append(assign(attr_name, f"{attr!s}"))
+
+    return build_function_code(
+        "f",
+        tuple(str(s) for s in yield_free_symbols(expr)),
+        lines,
+        [
+            "__out",
+        ],
+    )

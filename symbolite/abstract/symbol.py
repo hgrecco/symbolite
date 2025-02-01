@@ -357,7 +357,7 @@ def _(self: UserFunction, libsl: types.ModuleType) -> Callable[..., Any]:
 
 
 @yield_free_symbols.register
-def _(self: Symbol) -> Generator[Symbol, Any, None]:
+def _(self: Symbol) -> Generator[Symbol, None, None]:
     if self.expression is None and self.namespace == "":
         yield self
     else:

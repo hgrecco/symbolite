@@ -14,11 +14,22 @@ from __future__ import annotations
 import dataclasses
 import functools
 import types
-from typing import Any, Generator, Mapping
+from typing import TYPE_CHECKING, Any, Generator, Mapping
 
 from .named import Named
-from .operations import evaluate_impl, substitute, yield_free_symbols, yield_named
+from .operations import (
+    as_function_def,
+    assign,
+    build_function_code,
+    evaluate_impl,
+    substitute,
+    yield_free_symbols,
+    yield_named,
+)
 from .util import repr_without_defaults
+
+if TYPE_CHECKING:
+    pass
 
 
 @dataclasses.dataclass(frozen=True, repr=False)
@@ -91,6 +102,21 @@ class NamedExpression(Named):
 
 
 @yield_free_symbols.register
-def _(expr: NamedExpression) -> Generator[Named, Any, None]:
+def _(expr: NamedExpression) -> Generator[Any, None, None]:
     if expr.expression is None:
         yield expr
+
+
+@as_function_def.register
+def _(expr: NamedExpression) -> str:
+    function_name = expr.name or "f"
+    return build_function_code(
+        function_name,
+        tuple(str(s) for s in yield_free_symbols(expr)),
+        [
+            assign("__out", str(expr)),
+        ],
+        [
+            "__out",
+        ],
+    )

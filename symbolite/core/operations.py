@@ -49,7 +49,6 @@ def build_function_code(
         + "\n    ".join(body)
         + f"\n    return {', '.join(return_variables)}"
     )
-    print(fdef)
     return fdef
 
 
@@ -70,6 +69,10 @@ def as_string(expr: Any) -> str:
 
 
 @singledispatch
+def as_function_def(expr) -> str:
+    raise TypeError(f"Cannot build function definition for {type(expr)}")
+
+
 def as_function(
     expr: Any,
     libsl: types.ModuleType | None = None,
@@ -80,26 +83,11 @@ def as_function(
     ----------
     expr
         symbolic expression.
-    function_name
-        name of the function to be used.
-    params
-        names of the parameters.
     libsl
         implementation module.
     """
 
-    function_name = "f"
-    function_def = build_function_code(
-        function_name,
-        tuple(str(s) for s in yield_free_symbols(expr)),
-        [
-            assign("__out", str(expr)),
-        ],
-        [
-            "__out",
-        ],
-    )
-
+    function_def = as_function_def(expr)
     lm = compile(function_def, libsl)
 
     f = lm["f"]
@@ -107,34 +95,24 @@ def as_function(
     return f
 
 
-@as_function.register(tuple)
-@as_function.register(list)
+@as_function_def.register(tuple)
+@as_function_def.register(list)
 def _(
     expr: tuple[Any],
-    libsl: types.ModuleType | None = None,
 ) -> Callable[..., Any]:
-    function_name = "f"
-    function_def = build_function_code(
+    return build_function_code(
         "f",
         tuple(str(s) for s in yield_free_symbols(expr)),
         [assign(f"__out_{ndx}", str(el)) for ndx, el in enumerate(expr)],
         [f"__out_{ndx}" for ndx, _ in enumerate(expr)],
     )
 
-    lm = compile(function_def, libsl)
 
-    f = lm[function_name]
-    f.__symbolite_def__ = function_def
-    return f
-
-
-@as_function.register(dict)
+@as_function_def.register(dict)
 def _(
     expr: dict[str, Any],
-    libsl: types.ModuleType | None = None,
 ) -> Callable[..., Any]:
-    function_name = "f"
-    function_def = build_function_code(
+    return build_function_code(
         "f",
         tuple(str(s) for s in yield_free_symbols(tuple(expr.values()))),
         ["__out = {}"] + [assign(f"__out['{k}']", str(el)) for k, el in expr.items()],
@@ -142,12 +120,6 @@ def _(
             "__out",
         ],
     )
-
-    lm = compile(function_def, libsl)
-
-    f = lm[function_name]
-    f.__symbolite_def__ = function_def
-    return f
 
 
 def compile(
@@ -264,7 +236,7 @@ def yield_free_symbols(expr: Any) -> Generator[Symbol, None, None]:
 
 @yield_free_symbols.register(tuple)
 @yield_free_symbols.register(list)
-def _(expr: tuple[Any]) -> Generator[Symbol, Any, types.NoneType]:
+def _(expr: tuple[Any]) -> Generator[Symbol, None, None]:
     seen = set()
     for el in expr:
         for fs in yield_free_symbols(el):

@@ -31,7 +31,6 @@ from ..core.named import Named, yield_named
 from ..core.operations import (
     evaluate_impl,
     substitute,
-    yield_free_symbols,
 )
 from ..core.util import Unsupported, repr_without_defaults
 
@@ -354,17 +353,6 @@ def _(self: UserFunction, libsl: types.ModuleType) -> Callable[..., Any]:
         raise Exception(
             f"No implementation found for {libsl.__name__} and no default implementation provided for function {self!s}"
         )
-
-
-@yield_free_symbols.register
-def _(self: Symbol) -> Generator[Symbol, None, None]:
-    if self.expression is None and self.namespace == "":
-        yield self
-    else:
-        for el in yield_named(self.expression):
-            if not isinstance(el, Symbol):
-                continue
-            yield from yield_free_symbols(el)
 
 
 @dataclasses.dataclass(frozen=True, repr=False, kw_only=True)

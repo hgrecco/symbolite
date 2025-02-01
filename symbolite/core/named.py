@@ -11,10 +11,10 @@ Provides name, namespace for other objects.
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Callable, Generator
+from typing import Any, Generator
 
 from .operations import yield_named
-from .util import repr_without_defaults
+from .util import compare_namespace, repr_without_defaults
 
 
 @dataclasses.dataclass(frozen=True, repr=False)
@@ -37,17 +37,6 @@ class Named:
     def format(self, *args: Any, **kwargs: Any) -> str: ...
 
 
-def filter_namespace(
-    namespace: str | None = "", include_anonymous: bool = False
-) -> Callable[[Named], bool]:
-    def _inner(s: Named) -> bool:
-        if namespace is None:
-            return True
-        return s.namespace == namespace
-
-    return _inner
-
-
 def symbol_namespaces(self: Any) -> set[str]:
     """Return a set of symbol libraries"""
     return set(map(lambda s: s.namespace, yield_named(self, False)))
@@ -63,7 +52,7 @@ def symbol_names(self: Any, namespace: str | None = "") -> set[str]:
         If a string, will compare Symbol.namespace to that.
         Defaults to "" which is the namespace for user defined symbols.
     """
-    ff = filter_namespace(namespace)
+    ff = compare_namespace(namespace)
     return set(map(str, filter(ff, yield_named(self, False))))
 
 

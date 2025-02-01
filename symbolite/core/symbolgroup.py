@@ -23,8 +23,8 @@ from .operations import (
     assign,
     build_function_code,
     evaluate_impl,
+    free_symbols,
     substitute,
-    yield_free_symbols,
     yield_named,
 )
 
@@ -68,6 +68,7 @@ def _(self, replacements: Mapping[Any, Any]) -> Any:
 @evaluate_impl.register(SymbolicNamespaceMeta)
 @evaluate_impl.register(SymbolicNamespace)
 def _(self, libsl: types.ModuleType) -> Any:
+    assert isinstance(self, (SymbolicNamespace, SymbolicNamespaceMeta))
     return {
         attr_name: evaluate_impl(getattr(self, attr_name), libsl)
         for attr_name in dir(self)
@@ -78,7 +79,9 @@ def _(self, libsl: types.ModuleType) -> Any:
 @as_string.register(SymbolicNamespaceMeta)
 @as_string.register(SymbolicNamespace)
 def _(self) -> str:
-    free_symbols: list[str] = []
+    assert isinstance(self, (SymbolicNamespace, SymbolicNamespaceMeta))
+
+    fs: list[str] = []
     lines: list[str] = []
 
     for attr_name in dir(self):
@@ -92,18 +95,21 @@ def _(self) -> str:
             warnings.warn(f"Missmatched names in attribute {attr_name} vs. {attr}")
 
         if attr.expression is None:
-            if attr.name is not None and attr.name not in free_symbols:
-                free_symbols.append(attr.name)
+            if attr.name is not None and attr.name not in fs:
+                fs.append(attr.name)
         else:
             lines.append(f"{attr_name} = {attr!s}")
 
     return "\n".join(lines)
 
 
-@as_function_def.register
+@as_function_def.register(SymbolicNamespaceMeta)
+@as_function_def.register(SymbolicNamespace)
 def _(
-    expr: SymbolicNamespace,
+    expr,
 ) -> str:
+    assert isinstance(expr, (SymbolicNamespace, SymbolicNamespaceMeta))
+
     lines = []
     for attr_name in dir(expr):
         attr = getattr(expr, attr_name)
@@ -115,7 +121,7 @@ def _(
 
     return build_function_code(
         "f",
-        tuple(str(s) for s in yield_free_symbols(expr)),
+        tuple(map(str, free_symbols(expr))),
         lines,
         [
             "__out",

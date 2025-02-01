@@ -12,11 +12,14 @@ from __future__ import annotations
 
 import dataclasses
 from types import ModuleType
-from typing import Any, Callable, Hashable, Iterator, Mapping, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Hashable, Iterator, Mapping, TypeVar
 
 from .operations import evaluate, inspect, substitute
 
 TH = TypeVar("TH", bound=Hashable)
+
+if TYPE_CHECKING:
+    from .named import Named
 
 
 def solve_dependencies(dependencies: Mapping[TH, set[TH]]) -> Iterator[set[TH]]:
@@ -134,6 +137,16 @@ def repr_without_defaults(
 
     args_repr = (f"{k}={v}" for k, v in include.items())
     return f"{dataclass_instance.__class__.__name__}({', '.join(args_repr)})"
+
+
+def compare_namespace(namespace: str | None = "") -> Callable[[Named], bool]:
+    # TODO improve include_anonymous
+    def predicate(s: Named) -> bool:
+        if namespace is None:
+            return True
+        return s.namespace == namespace
+
+    return predicate
 
 
 class Unsupported(ValueError):

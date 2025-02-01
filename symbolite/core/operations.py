@@ -99,10 +99,10 @@ def as_function(
 @as_function_def.register(list)
 def _(
     expr: tuple[Any],
-) -> Callable[..., Any]:
+) -> str:
     return build_function_code(
         "f",
-        tuple(str(s) for s in yield_free_symbols(expr)),
+        tuple(map(str, free_symbols(expr))),
         [assign(f"__out_{ndx}", str(el)) for ndx, el in enumerate(expr)],
         [f"__out_{ndx}" for ndx, _ in enumerate(expr)],
     )
@@ -111,10 +111,10 @@ def _(
 @as_function_def.register(dict)
 def _(
     expr: dict[str, Any],
-) -> Callable[..., Any]:
+) -> str:
     return build_function_code(
         "f",
-        tuple(str(s) for s in yield_free_symbols(tuple(expr.values()))),
+        tuple(map(str, free_symbols(tuple(expr.values())))),
         ["__out = {}"] + [assign(f"__out['{k}']", str(el)) for k, el in expr.items()],
         [
             "__out",
@@ -229,26 +229,30 @@ def evaluate_impl_str(expr: str, libsl: types.ModuleType) -> Any:  # | Unsupport
 
 
 @singledispatch
-def yield_free_symbols(expr: Any) -> Generator[Symbol, None, None]:
-    return
-    yield
-
-
-@yield_free_symbols.register(tuple)
-@yield_free_symbols.register(list)
-def _(expr: tuple[Any]) -> Generator[Symbol, None, None]:
-    seen = set()
-    for el in expr:
-        for fs in yield_free_symbols(el):
-            if fs in seen:
-                continue
-            seen.add(fs)
-            yield fs
-
-
-@singledispatch
 def yield_named(
     self: Any, include_anonymous: bool = False
 ) -> Generator[Named, None, None]:
     return
     yield Named()  # This is required to make it a generator.
+
+
+@yield_named.register(tuple)
+@yield_named.register(list)
+def _(expr: tuple[Any]) -> Generator[Named, None, None]:
+    for el in expr:
+        yield from yield_named(el)
+
+
+def is_free_symbol(obj: Any) -> bool:
+    from ..abstract import Symbol
+
+    return isinstance(obj, Symbol) and obj.expression is None and obj.namespace == ""
+
+
+def free_symbols(obj: Any) -> tuple[Symbol]:
+    seen = []
+    for el in filter(is_free_symbol, yield_named(obj)):
+        if el not in seen:
+            seen.append(el)
+
+    return tuple(seen)

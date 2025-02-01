@@ -22,8 +22,8 @@ from .operations import (
     assign,
     build_function_code,
     evaluate_impl,
+    free_symbols,
     substitute,
-    yield_free_symbols,
     yield_named,
 )
 from .util import repr_without_defaults
@@ -101,18 +101,12 @@ class NamedExpression(Named):
     expression: Expression | None = None
 
 
-@yield_free_symbols.register
-def _(expr: NamedExpression) -> Generator[Any, None, None]:
-    if expr.expression is None:
-        yield expr
-
-
 @as_function_def.register
 def _(expr: NamedExpression) -> str:
     function_name = expr.name or "f"
     return build_function_code(
         function_name,
-        tuple(str(s) for s in yield_free_symbols(expr)),
+        tuple(map(str, free_symbols(expr))),
         [
             assign("__out", str(expr)),
         ],

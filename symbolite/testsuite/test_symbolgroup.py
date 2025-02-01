@@ -55,7 +55,17 @@ def test_as_str():
         z = x + 2 * y
         p = scalar.cos(z)
 
-    s = "p = scalar.cos(x + 2 * y)\nz = x + 2 * y"
+    s = "\n".join(
+        [
+            "# X",
+            "",
+            "x = Scalar()",
+            "y = Scalar()",
+            "",
+            "p = scalar.cos(x + 2 * y)",
+            "z = x + 2 * y",
+        ]
+    )
 
     assert as_string(X) == s
 

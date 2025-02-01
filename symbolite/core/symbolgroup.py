@@ -80,21 +80,20 @@ def _(self, libsl: types.ModuleType) -> Any:
 def _(self) -> str:
     assert isinstance(self, (SymbolicNamespace, SymbolicNamespaceMeta))
 
-    fs: list[str] = []
-    lines: list[str] = []
+    lines = [f"# {self.__name__}", ""]
+
+    for fs in free_symbols(self):
+        lines.append(assign(fs.name, f"{fs.__class__.__name__}()"))
+
+    lines.append("")
 
     for attr_name in dir(self):
-        if attr_name.startswith("__"):
-            continue
         attr = getattr(self, attr_name)
         if not isinstance(attr, Symbol):
             continue
 
-        if attr.expression is None:
-            if attr.name is not None and attr.name not in fs:
-                fs.append(attr.name)
-        else:
-            lines.append(f"{attr_name} = {attr!s}")
+        if attr.expression is not None:
+            lines.append(assign(attr_name, f"{attr!s}"))
 
     return "\n".join(lines)
 
@@ -116,7 +115,7 @@ def _(
             lines.append(assign(attr_name, f"{attr!s}"))
 
     return build_function_code(
-        "f",
+        expr.__name__,
         tuple(map(str, free_symbols(expr))),
         tuple(lines),
         [

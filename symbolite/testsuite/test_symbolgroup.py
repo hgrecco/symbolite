@@ -45,7 +45,7 @@ def test_as_str():
         z = x + 2 * y
         p = scalar.cos(z)
 
-    s = "def X(x, y):\n    p = scalar.cos(x + 2 * y)\n    z = x + 2 * y"
+    s = "p = scalar.cos(x + 2 * y)\nz = x + 2 * y"
 
     assert as_string(X) == s
 

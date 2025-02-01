@@ -69,7 +69,7 @@ def _(self, libsl: types.ModuleType) -> Any:
 @as_string.register(SymbolicNamespaceMeta)
 @as_string.register(SymbolicNamespace)
 def _(self) -> str:
-    free_symbols: list[str] = []
+    yield_free_symbols: list[str] = []
     lines: list[str] = []
 
     for attr_name in dir(self):
@@ -83,11 +83,18 @@ def _(self) -> str:
             warnings.warn(f"Missmatched names in attribute {attr_name} vs. {attr}")
 
         if attr.expression is None:
-            if attr.name is not None and attr.name not in free_symbols:
-                free_symbols.append(attr.name)
+            if attr.name is not None and attr.name not in yield_free_symbols:
+                yield_free_symbols.append(attr.name)
         else:
             lines.append(f"{attr_name} = {attr!s}")
 
-    lines.insert(0, f"def {self.__name__}({', '.join(free_symbols)}):")
+    return "\n".join(lines)
 
-    return "\n    ".join(lines)
+
+# @as_function.register
+# def _(
+#     expr: Any,
+#     function_name: str,
+#     params: Sequence[TH],
+#     libsl: types.ModuleType | None = None,
+# ) -> Callable[..., Any]:

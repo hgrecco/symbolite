@@ -39,10 +39,32 @@ def test_typing():
 )
 @pytest.mark.parametrize("libsl", all_impl.values(), ids=all_impl.keys())
 def test_known_symbols(expr: Symbol, libsl: types.ModuleType):
-    f = as_function(expr, "my_function", ("x", "y"), libsl=libsl)
-    assert f.__name__ == "my_function"
+    f = as_function(expr, libsl=libsl)
+    assert f.__name__ == "f"
     assert evaluate(substitute(expr, {x: 2, y: 3}), libsl=libsl) == f(2, 3)
     assert tuple(inspect.signature(f).parameters.keys()) == ("x", "y")
+
+
+# x = 2, y = 3, z = 1
+f1 = 2 * x + y
+f2 = (f1, 3 * x, 4 * z)
+f3 = {"a": f1, "b": 3 * x, "c": 4 * z}
+
+
+@pytest.mark.parametrize(
+    "expr,params,args,result",
+    [
+        (f1, ("x", "y"), (2, 3), 7),
+        (f2, ("x", "y", "z"), (2, 3, 1), (7, 6, 4)),
+        (f3, ("x", "y", "z"), (2, 3, 1), {"a": 7, "b": 6, "c": 4}),
+    ],
+)
+@pytest.mark.parametrize("libsl", all_impl.values(), ids=all_impl.keys())
+def test_as_function(expr, params, args, result, libsl: types.ModuleType):
+    f = as_function(expr, libsl=libsl)
+    assert f.__name__ == "f"
+    assert tuple(inspect.signature(f).parameters.keys()) == params
+    assert f(*args) == result
 
 
 @pytest.mark.parametrize(
@@ -54,9 +76,9 @@ def test_known_symbols(expr: Symbol, libsl: types.ModuleType):
 )
 @pytest.mark.parametrize("libsl", all_impl.values(), ids=all_impl.keys())
 def test_lib_symbols(expr: Symbol, replaced: Symbol, libsl: types.ModuleType):
-    f = as_function(expr, "my_function", ("x", "y"), libsl=libsl)
+    f = as_function(expr, libsl=libsl)
     value = f(2, 3)
-    assert f.__name__ == "my_function"
+    assert f.__name__ == "f"
     assert evaluate(substitute(expr, {x: 2, y: 3}), libsl=libsl) == value
     assert tuple(inspect.signature(f).parameters.keys()) == ("x", "y")
 

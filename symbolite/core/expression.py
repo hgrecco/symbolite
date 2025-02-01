@@ -16,7 +16,7 @@ import functools
 import types
 from typing import Any, Generator, Mapping
 
-from .named import Named, yield_named
+from .named import Named, yield_free_symbols, yield_named
 from .operations import evaluate_impl, substitute
 from .util import repr_without_defaults
 
@@ -88,3 +88,9 @@ class NamedExpression(Named):
     """An expression with name and namespace."""
 
     expression: Expression | None = None
+
+
+@yield_free_symbols.register
+def _(expr: NamedExpression) -> Generator[Named, Any, None]:
+    if expr.expression is None:
+        yield expr

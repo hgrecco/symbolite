@@ -16,8 +16,8 @@ import functools
 import types
 from typing import Any, Generator, Mapping
 
-from .named import Named, yield_free_symbols, yield_named
-from .operations import evaluate_impl, substitute
+from .named import Named
+from .operations import evaluate_impl, substitute, yield_free_symbols, yield_named
 from .util import repr_without_defaults
 
 

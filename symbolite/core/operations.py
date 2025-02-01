@@ -21,6 +21,7 @@ from ..impl import find_module_in_stack
 
 if TYPE_CHECKING:
     from ..abstract import Symbol
+    from .named import Named
 
 
 def build_function_code(
@@ -271,3 +272,11 @@ def _(expr: tuple[Any]) -> Generator[Symbol, Any, types.NoneType]:
                 continue
             seen.add(fs)
             yield fs
+
+
+@singledispatch
+def yield_named(
+    self: Any, include_anonymous: bool = False
+) -> Generator[Named, None, None]:
+    return
+    yield Named()  # This is required to make it a generator.

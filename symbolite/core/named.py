@@ -11,9 +11,9 @@ Provides name, namespace for other objects.
 from __future__ import annotations
 
 import dataclasses
-from functools import singledispatch
 from typing import Any, Callable, Generator
 
+from .operations import yield_named
 from .util import repr_without_defaults
 
 
@@ -65,14 +65,6 @@ def symbol_names(self: Any, namespace: str | None = "") -> set[str]:
     """
     ff = filter_namespace(namespace)
     return set(map(str, filter(ff, yield_named(self, False))))
-
-
-@singledispatch
-def yield_named(
-    self: Any, include_anonymous: bool = False
-) -> Generator[Named, None, None]:
-    return
-    yield Named()  # This is required to make it a generator.
 
 
 @yield_named.register

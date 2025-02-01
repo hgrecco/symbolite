@@ -1,10 +1,20 @@
 import math
 
+import pytest
+
 from symbolite import Scalar, Symbol, scalar
 from symbolite.core.named import symbol_names
 from symbolite.core.operations import as_string, evaluate, substitute
 from symbolite.core.symbolgroup import SymbolicNamespace
 from symbolite.impl import libstd
+
+
+def test_double_naming():
+    with pytest.warns(UserWarning):
+
+        class N(SymbolicNamespace):
+            x = Symbol("x")
+            y = Symbol("z")
 
 
 def test_naming():

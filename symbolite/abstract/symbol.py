@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import dataclasses
 import types
+import warnings
 from typing import (
     Any,
     Callable,
@@ -233,6 +234,12 @@ class Symbol(NamedExpression):
 
     # Naming in symbolic namespace
     def __set_name__(self, owner: Any, name: str):
+        current_name = getattr(self, "name", None)
+        if current_name is not None and current_name != name:
+            warnings.warn(
+                f"Missmatched names in attribute {name}: {type(self)} is named {current_name}"
+            )
+
         object.__setattr__(self, "name", name)
 
 

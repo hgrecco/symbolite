@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import inspect
 import types
-import warnings
 from typing import Any, Generator, Mapping
 
 from ..abstract.symbol import Symbol
@@ -90,9 +89,6 @@ def _(self) -> str:
         attr = getattr(self, attr_name)
         if not isinstance(attr, Symbol):
             continue
-
-        if attr.name is not None and attr_name != attr.name:
-            warnings.warn(f"Missmatched names in attribute {attr_name} vs. {attr}")
 
         if attr.expression is None:
             if attr.name is not None and attr.name not in fs:

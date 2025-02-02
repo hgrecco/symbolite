@@ -116,8 +116,8 @@ def _(
 
     return build_function_code(
         expr.__name__,
-        tuple(map(str, free_symbols(expr))),
-        tuple(lines),
+        map(str, free_symbols(expr)),
+        lines,
         [
             "__out",
         ],

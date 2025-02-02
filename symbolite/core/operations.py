@@ -104,7 +104,7 @@ def _(
         "f",
         map(str, free_symbols(expr)),
         (assign(f"__out_{ndx}", str(el)) for ndx, el in enumerate(expr)),
-        (f"__out_{ndx}" for ndx, _ in enumerate(expr)),
+        map("__out_{}".format, range(len(expr))),
     )
 
 

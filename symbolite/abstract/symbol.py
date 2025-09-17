@@ -234,10 +234,12 @@ class Symbol(NamedExpression):
 
     # Naming in symbolic namespace
     def __set_name__(self, owner: Any, name: str):
+        if name.endswith("__return"):
+            return
         current_name = getattr(self, "name", None)
         if current_name is not None and current_name != name:
             warnings.warn(
-                f"Missmatched names in attribute {name}: {type(self)} is named {current_name}"
+                f"Mismatched names in attribute {name}: {type(self)} is named {current_name}"
             )
 
         object.__setattr__(self, "name", name)

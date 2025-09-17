@@ -119,6 +119,6 @@ def _(
         map(str, free_symbols(expr)),
         lines,
         [
-            "__out",
+            "__return",
         ],
     )

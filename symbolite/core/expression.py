@@ -108,9 +108,9 @@ def _(expr: NamedExpression) -> str:
         function_name,
         map(str, free_symbols(expr)),
         [
-            assign("__out", str(expr)),
+            assign("__return", str(expr)),
         ],
         [
-            "__out",
+            "__return",
         ],
     )

@@ -103,8 +103,8 @@ def _(
     return build_function_code(
         "f",
         map(str, free_symbols(expr)),
-        (assign(f"__out_{ndx}", str(el)) for ndx, el in enumerate(expr)),
-        map("__out_{}".format, range(len(expr))),
+        (assign(f"__return_{ndx}", str(el)) for ndx, el in enumerate(expr)),
+        map("__return_{}".format, range(len(expr))),
     )
 
 
@@ -115,9 +115,9 @@ def _(
     return build_function_code(
         "f",
         map(str, free_symbols(tuple(expr.values()))),
-        ["__out = {}"] + [assign(f"__out['{k}']", str(el)) for k, el in expr.items()],
+        ["__return = {}"] + [assign(f"__return['{k}']", str(el)) for k, el in expr.items()],
         [
-            "__out",
+            "__return",
         ],
     )
 
